@@ -10,23 +10,25 @@ import java.util.List;
 
 public class PostRepository {
 
-    public List<Category> getAllFromTopicCategories() throws SQLException {
+    public List<Post> getAllPostFromTopic(Long id) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM categories")) {
+             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM posts WHERE topic_id = ? ORDER BY created_at ASC");) {
 
-            return extractCategories(preparedStatement);
+            preparedStatement.setLong(1, id);
+
+            return extractPosts(preparedStatement);
         }
     }
 
-    public Category getCategoryById(Long id) throws SQLException {
+    public Post getPostById(Long id) throws SQLException {
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM categories WHERE id = ?")) {
+             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM posts WHERE id = ?")) {
 
             preparedStatement.setLong(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    return mapCategory(resultSet);
+                    return mapPost(resultSet);
                 }
             }
         }
@@ -34,58 +36,65 @@ public class PostRepository {
         return null;
     }
 
-    public List<Category> getCategoryByName(String name) throws SQLException {
+    public Post getFirstPostInTopic(Long topicId) throws SQLException {
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM categories WHERE name LIKE ?");) {
+             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM posts WHERE topic_id = ? AND is_first_post = true");) {
 
-            preparedStatement.setString(1, "%" + name + "%");
-            return extractCategories(preparedStatement);
+            preparedStatement.setLong(1, topicId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapPost(resultSet);
+                }
+            }
         }
+        return null;
     }
 
-    public void addCategory(Category category) throws SQLException {
+    public void addPost(Post post) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO categories (name, description, age_restriction) VALUES (?, ?, ?)")) {
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "INSERT INTO posts (user_id, topic_id, post_text, is_first_post) VALUES (?, ?, ?, ?)"))  {
+            preparedStatement.setLong(1, post.getUserId());
+            preparedStatement.setLong(2, post.getTopicId());
+            preparedStatement.setString(3, post.getPostText());
+            preparedStatement.setBoolean(4, post.getFirstPost());
 
-            preparedStatement.setString(1, category.getName());
-            preparedStatement.setString(2, category.getDescription());
-            preparedStatement.setInt(3, category.getAgeRestriction());
             preparedStatement.executeUpdate();
         }
     }
 
-    public void updateCategory(Category category) throws SQLException {
+    public void updatePost(Post post) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("update categories set name = ?, description = ?, age_restriction = ?  WHERE id = ?")) {
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "UPDATE posts SET post_text = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")) {
 
-            preparedStatement.setString(1, category.getName());
-            preparedStatement.setString(2, category.getDescription());
-            preparedStatement.setInt(3, category.getAgeRestriction());
-            preparedStatement.setLong(4, category.getId());
+            preparedStatement.setString(1, post.getPostText());
+            preparedStatement.setLong(2, post.getId());
             preparedStatement.executeUpdate();
         }
     }
 
-    public void deleteCategory(Long id) throws SQLException {
+    public void deletePost(Long id) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM categories WHERE id = ?")) {
+             PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM posts WHERE id = ?")) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
         }
     }
 
-    private List<Category> extractCategories(PreparedStatement ps) throws SQLException {
-        List<Category> categories = new ArrayList<>();
+    private List<Post> extractPosts(PreparedStatement ps) throws SQLException {
+        List<Post> posts = new ArrayList<>();
         try (ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                categories.add(mapCategory(rs));
+                posts.add(mapPost(rs));
             }
         }
-        return categories;
+        return posts;
     }
 
-    public static Post mapPost(ResultSet rs) throws SQLException {
+    private static Post mapPost(ResultSet rs) throws SQLException {
         Post post = new Post();
         post.setId(rs.getLong("id"));
         post.setUserId(rs.getLong("user_id"));
