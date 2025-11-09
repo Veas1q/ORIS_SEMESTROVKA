@@ -1,7 +1,5 @@
 package ru.itis.dis403.semestrovka.repositories;
 
-import ru.itis.dis403.semestrovka.dto.AdminUpdateDTO;
-import ru.itis.dis403.semestrovka.dto.UserUpdateDTO;
 import ru.itis.dis403.semestrovka.models.User;
 
 import java.sql.*;
@@ -75,7 +73,7 @@ public class UserRepository {
             preparedStatement.setDate(6, user.getBirthDate() != null ? Date.valueOf(user.getBirthDate()) : null);
             preparedStatement.setString(7, user.getRole());
             preparedStatement.setString(8, user.getGender());
-            preparedStatement.setBoolean(9, user.getBanned());
+            preparedStatement.setBoolean(9, user.getIsBanned());
             preparedStatement.setLong(10, user.getId());
             preparedStatement.executeUpdate();
         }

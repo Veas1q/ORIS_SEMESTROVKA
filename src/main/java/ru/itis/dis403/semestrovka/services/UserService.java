@@ -68,17 +68,19 @@ public class UserService {
         throw new IllegalArgumentException("User not found");
     }
 
-    public User userUpdate(UserUpdateDTO user) throws SQLException {
+    public User userUpdate(User user, Long currentUserId) throws SQLException {
+        if (!user.getId().equals(currentUserId)) {
+            throw new SecurityException("You can only update your own profile");
+        }
         User userUpdate = userRepository.findById(user.getId());
         if (userUpdate != null) {
+            userUpdate.setLogin(user.getLogin());
             userUpdate.setFirstName(user.getFirstName());
             userUpdate.setLastName(user.getLastName());
-            userUpdate.setBirthDate(user.getBirthDate());
             userUpdate.setEmail(user.getEmail());
-            userUpdate.setGender(user.getGender());
             userUpdate.setPhoneNumber(user.getPhoneNumber());
             userUpdate.setBirthDate(user.getBirthDate());
-            userUpdate.setLogin(user.getLogin());
+            userUpdate.setGender(user.getGender());
 
             userRepository.userUpdate(userUpdate);
             return userUpdate;
@@ -86,19 +88,18 @@ public class UserService {
         throw new IllegalArgumentException("User not found");
     }
 
-    public User adminUpdate(AdminUpdateDTO user) throws SQLException {
+    public User adminUpdate(User user) throws SQLException {
         User userUpdate = userRepository.findById(user.getId());
         if (userUpdate != null) {
+            userUpdate.setLogin(user.getLogin());
             userUpdate.setFirstName(user.getFirstName());
             userUpdate.setLastName(user.getLastName());
-            userUpdate.setBirthDate(user.getBirthDate());
             userUpdate.setEmail(user.getEmail());
-            userUpdate.setGender(user.getGender());
             userUpdate.setPhoneNumber(user.getPhoneNumber());
             userUpdate.setBirthDate(user.getBirthDate());
-            userUpdate.setIsBanned(user.getBanned());
+            userUpdate.setGender(user.getGender());
+            userUpdate.setIsBanned(user.getIsBanned());
             userUpdate.setRole(user.getRole());
-            userUpdate.setLogin(user.getLogin());
 
             userRepository.adminUpdate(userUpdate);
             return userUpdate;

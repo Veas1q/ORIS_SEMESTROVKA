@@ -17,9 +17,10 @@ public class User {
     private Boolean isBanned;
     private String gender;
 
-    public Boolean getBanned() {
+    public Boolean getIsBanned() {
         return isBanned;
     }
+
 
     public String getGender() {
         return gender;

@@ -76,6 +76,19 @@ public class PostRepository {
         }
     }
 
+    public void setPostPinned(Long postId, boolean pinned, Long pinnedByUserId) throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "UPDATE posts SET is_pinned_in_topic = ?, pinned_by_user_id = ?, pinned_at = ? WHERE id = ?")) {
+
+            preparedStatement.setBoolean(1, pinned);
+            preparedStatement.setObject(2, pinnedByUserId);
+            preparedStatement.setTimestamp(3, pinned ? Timestamp.valueOf(LocalDateTime.now()) : null);
+            preparedStatement.setLong(4, postId);
+            preparedStatement.executeUpdate();
+        }
+    }
+
     public void deletePost(Long id) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM posts WHERE id = ?")) {
