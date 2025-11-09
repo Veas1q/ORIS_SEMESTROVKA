@@ -1,24 +1,24 @@
-package ru.itis.dis403.semestrovka.models;
+package ru.itis.dis403.semestrovka.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
-public class User {
+public class UserUpdateDTO {
+
     private Long id;
     private String login;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
-    private String passwordHash;
     private LocalDate birthDate;
-    private String role;
-    private Boolean isBanned;
     private String gender;
 
-    public Boolean getBanned() {
-        return isBanned;
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getGender() {
@@ -29,28 +29,7 @@ public class User {
         this.gender = gender;
     }
 
-
-    public void setIsBanned(Boolean isBanned) {
-        this.isBanned = isBanned;
-    }
-
-    public User() {
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
+    public UserUpdateDTO() {
     }
 
     public Long getId() {
@@ -59,14 +38,6 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
     }
 
     public String getFirstName() {
@@ -101,11 +72,13 @@ public class User {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+    public LocalDate getBirthDate() {
+        return birthDate;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
     }
+
+
 }

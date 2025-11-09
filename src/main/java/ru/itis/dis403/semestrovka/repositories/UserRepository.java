@@ -1,5 +1,7 @@
 package ru.itis.dis403.semestrovka.repositories;
 
+import ru.itis.dis403.semestrovka.dto.AdminUpdateDTO;
+import ru.itis.dis403.semestrovka.dto.UserUpdateDTO;
 import ru.itis.dis403.semestrovka.models.User;
 
 import java.sql.*;
@@ -60,11 +62,11 @@ public class UserRepository {
             preparedStatement.executeUpdate();
         }
     }
-
-    public void update(User user) throws SQLException {
+    public void adminUpdate(User user) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
-                     "UPDATE users SET login = ?, first_name = ?, last_name = ?, email = ?, phone_number = ?, birth_date = ?, role = ? WHERE id = ?")) {
+                     "UPDATE users SET login = ?, first_name = ?, last_name = ?, email = ?, phone_number = ?, birth_date = ?, role = ?, gender = ?, is_banned = ? WHERE id = ?")) {
+
             preparedStatement.setString(1, user.getLogin());
             preparedStatement.setString(2, user.getFirstName());
             preparedStatement.setString(3, user.getLastName());
@@ -72,12 +74,30 @@ public class UserRepository {
             preparedStatement.setString(5, user.getPhoneNumber());
             preparedStatement.setDate(6, user.getBirthDate() != null ? Date.valueOf(user.getBirthDate()) : null);
             preparedStatement.setString(7, user.getRole());
-            preparedStatement.setLong(8, user.getId());
+            preparedStatement.setString(8, user.getGender());
+            preparedStatement.setBoolean(9, user.getBanned());
+            preparedStatement.setLong(10, user.getId());
             preparedStatement.executeUpdate();
         }
     }
 
+    public void userUpdate(User user) throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(
+                     "UPDATE users SET login = ?, first_name = ?, last_name = ?, email = ?, phone_number = ?, birth_date = ?, gender = ? WHERE id = ?")) {
 
+            preparedStatement.setString(1, user.getLogin());
+            preparedStatement.setString(2, user.getFirstName());
+            preparedStatement.setString(3, user.getLastName());
+            preparedStatement.setString(4, user.getEmail());
+            preparedStatement.setString(5, user.getPhoneNumber());
+            preparedStatement.setDate(6, user.getBirthDate() != null ? Date.valueOf(user.getBirthDate()) : null);
+            preparedStatement.setString(7, user.getGender());
+            preparedStatement.setLong(8, user.getId());
+
+            preparedStatement.executeUpdate();
+        }
+    }
 
     public boolean existsByLogin(String login) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
@@ -102,6 +122,17 @@ public class UserRepository {
                 }
                 return false;
             }
+        }
+    }
+
+    public void updatePassword(Long userId, String newPasswordHash) throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     "UPDATE users SET password_hash = ? WHERE id = ?")) {
+
+            ps.setString(1, newPasswordHash);
+            ps.setLong(2, userId);
+            ps.executeUpdate();
         }
     }
 
