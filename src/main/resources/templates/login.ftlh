@@ -9,13 +9,13 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="/">Форум</a>
+        <a class="navbar-brand" href="">Форум</a>
         <div class="navbar-nav me-auto">
-            <a class="nav-link" href="/">Главная</a>
-            <a class="nav-link" href="/category/">Категории</a>
+            <a class="nav-link" href="">Главная</a>
+            <a class="nav-link" href="category/">Категории</a>
         </div>
         <div class="navbar-nav">
-            <a class="nav-link" href="/auth/register">Регистрация</a>
+            <a class="nav-link" href="auth/register">Регистрация</a>
         </div>
     </div>
 </nav>
@@ -32,7 +32,7 @@
                         <div class="alert alert-danger">${error}</div>
                     </#if>
 
-                    <form action="/auth/login" method="post">
+                    <form action="auth/login" method="post">
                         <div class="mb-3">
                             <label for="login" class="form-label">Логин</label>
                             <input type="text" class="form-control" id="login" name="login" required>
@@ -45,7 +45,7 @@
                     </form>
 
                     <div class="text-center mt-3">
-                        <a href="/auth/register">Нет аккаунта? Зарегистрируйтесь</a>
+                        <a href="auth/register">Нет аккаунта? Зарегистрируйтесь</a>
                     </div>
                 </div>
             </div>

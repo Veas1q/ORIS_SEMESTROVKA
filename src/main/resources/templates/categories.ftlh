@@ -9,18 +9,18 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="/">Форум</a>
+        <a class="navbar-brand" href="">Форум</a>
         <div class="navbar-nav me-auto">
-            <a class="nav-link" href="/">Главная</a>
-            <a class="nav-link" href="/category/">Категории</a>
+            <a class="nav-link" href="">Главная</a>
+            <a class="nav-link" href="category/">Категории</a>
         </div>
         <div class="navbar-nav">
             <#if user??>
                 <span class="nav-link">Привет, ${user.login!''}!</span>
-                <a class="nav-link" href="/auth/logout">Выйти</a>
+                <a class="nav-link" href="auth/logout">Выйти</a>
             <#else>
-                <a class="nav-link" href="/auth/login">Войти</a>
-                <a class="nav-link" href="/auth/register">Регистрация</a>
+                <a class="nav-link" href="auth/login">Войти</a>
+                <a class="nav-link" href="auth/register">Регистрация</a>
             </#if>
         </div>
     </div>

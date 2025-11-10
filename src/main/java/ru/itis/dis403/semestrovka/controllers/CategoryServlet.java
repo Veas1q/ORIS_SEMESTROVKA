@@ -25,7 +25,6 @@ public class CategoryServlet extends HttpServlet {
                 req.setAttribute("categories", categoryService.getAllCategories());
                 req.getRequestDispatcher("/categories.ftlh").forward(req, resp);
             } else {
-
                 Long categoryId = Long.parseLong(pathInfo.substring(1));
                 req.setAttribute("category", categoryService.getCategoryById(categoryId));
                 req.setAttribute("topics", topicService.getTopicsByCategoryId(categoryId));
