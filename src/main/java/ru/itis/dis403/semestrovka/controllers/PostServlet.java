@@ -28,30 +28,18 @@ public class PostServlet extends HttpServlet {
             } else if (pathInfo.matches("/\\d+/delete")) {
                 Long postId = Long.parseLong(pathInfo.split("/")[1]);
                 Post post = postService.getPostById(postId);
-                if (post == null) {
-                    resp.sendError(404, "Post not found");
-                    return;
-                }
+
                 String role = (String) req.getSession().getAttribute("userRole");
                 Long userId = (Long) req.getSession().getAttribute("userId");
-                if (!(post.getUserId().equals(userId) || role.equals("MODERATOR") || role.equals("ADMIN"))){
-                    resp.sendError(403, "You can only delete your own posts");
-                    return;
-                }
+               
                 req.getRequestDispatcher("delete-post.ftlh").forward(req, resp);
             } else if (pathInfo.matches("/\\d+/edit")) {
                 Long postId = Long.parseLong(pathInfo.split("/")[1]);
                 Post post = postService.getPostById(postId);
-                if (post == null) {
-                    resp.sendError(404, "Post not found");
-                    return;
-                }
+
                 String role = (String) req.getSession().getAttribute("userRole");
                 Long userId = (Long) req.getSession().getAttribute("userId");
-                if (!(post.getUserId().equals(userId) || role.equals("MODERATOR") || role.equals("ADMIN"))){
-                    resp.sendError(403, "You can only edit your own posts");
-                    return;
-                }
+
                 req.getRequestDispatcher("edit-post.ftlh").forward(req, resp);
             } else {
                 resp.sendError(404);
@@ -72,8 +60,25 @@ public class PostServlet extends HttpServlet {
                 post.setPostText(req.getParameter("postText"));
                 post.setUserId(Long.parseLong(req.getParameter("userId")));
                 post.setTopicId(Long.parseLong(req.getParameter("topicId")));
-                post.set
+                req.getRequestDispatcher("create-post.ftlh").forward(req, resp);
+            }  else if (pathInfo.matches("/\\d+/delete")) {
+                Long postId = Long.parseLong(pathInfo.split("/")[1]);
+                User user = (User) req.getSession().getAttribute("user");
+                postService.deletePost(postId, user);
+
+                req.getRequestDispatcher("delete-post.ftlh").forward(req, resp);
+            } else if (pathInfo.matches("/\\d+/edit")) {
+                Long postId = Long.parseLong(pathInfo.split("/")[1]);
+
+                Long userId = (Long) req.getSession().getAttribute("userId");
+
+                postService.updatePost(postId, userId);
+                req.getRequestDispatcher("edit-post.ftlh").forward(req, resp);
+            } else {
+                resp.sendError(404);
             }
+        } catch (NumberFormatException | IOException | ServletException | SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 }
