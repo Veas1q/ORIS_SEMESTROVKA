@@ -12,7 +12,7 @@ public class DBConnection {
     public static void init() {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.postgresql.Driver");
-        config.setJdbcUrl("jdbc:postgresql://localhost:5432/postgres");
+        config.setJdbcUrl("jdbc:postgresql://localhost:5432/Formach");
         config.setUsername("postgres");
         config.setPassword("Hepi_pro323");
         config.setMaximumPoolSize(10);
