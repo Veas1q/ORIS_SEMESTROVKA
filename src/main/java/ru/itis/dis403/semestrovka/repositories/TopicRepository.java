@@ -5,6 +5,7 @@ import ru.itis.dis403.semestrovka.models.Topic;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,15 +67,21 @@ public class TopicRepository {
         }
     }
 
+    // TopicRepository.java
     public void addTopic(Topic topic) throws SQLException {
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(
-                     "INSERT INTO topics (title, category_id, user_id, age_restriction) VALUES (?, ?, ?, ?)")) {
-            preparedStatement.setString(1, topic.getTitle());
-            preparedStatement.setLong(2, topic.getCategoryId());
-            preparedStatement.setLong(3, topic.getUserId());
-            preparedStatement.setInt(4, topic.getAgeRestriction());
-            preparedStatement.executeUpdate();
+        String sql = """
+        INSERT INTO topics (title, category_id, user_id, age_restriction)
+        VALUES (?, ?, ?, ?)
+        RETURNING id, created_at
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, topic.getTitle());
+            ps.setLong(2, topic.getCategoryId());
+            ps.setLong(3, topic.getUserId());
+            ps.setInt(4, topic.getAgeRestriction());
         }
     }
 
@@ -147,7 +154,6 @@ public class TopicRepository {
         topic.setTitle(rs.getString("title"));
         topic.setCategoryId(rs.getLong("category_id"));
         topic.setUserId(rs.getLong("user_id"));
-        topic.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         topic.setPinned(rs.getBoolean("is_pinned"));
         topic.setClosed(rs.getBoolean("is_closed"));
         topic.setViewCount(rs.getInt("view_count"));
@@ -156,6 +162,14 @@ public class TopicRepository {
         topic.setPinnedAt(getNullableTimestamp(rs, "pinned_at"));
         topic.setClosedByUserId(rs.getLong("closed_by_user_id"));
         topic.setClosedAt(getNullableTimestamp(rs, "closed_at"));
+        Timestamp ts = rs.getTimestamp("created_at");
+        if (ts != null) {
+            // Форматируем сразу как "13.11.2025 21:27"
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+            topic.setCreatedAt(ts.toLocalDateTime().format(fmt));
+        } else {
+            topic.setCreatedAt("—");
+        }
         return topic;
     }
 

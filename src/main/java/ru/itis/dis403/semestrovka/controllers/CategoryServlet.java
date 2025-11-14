@@ -12,9 +12,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 @WebServlet("/category/*")
-public class CategoryServlet extends HttpServlet {
-    private CategoryService categoryService = new CategoryService();
-    private TopicService topicService = new TopicService();
+public class CategoryServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -25,7 +23,6 @@ public class CategoryServlet extends HttpServlet {
                 req.setAttribute("categories", categoryService.getAllCategories());
                 req.getRequestDispatcher("/categories.ftlh").forward(req, resp);
             } else {
-
                 Long categoryId = Long.parseLong(pathInfo.substring(1));
                 req.setAttribute("category", categoryService.getCategoryById(categoryId));
                 req.setAttribute("topics", topicService.getTopicsByCategoryId(categoryId));

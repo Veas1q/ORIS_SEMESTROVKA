@@ -1,7 +1,6 @@
 package ru.itis.dis403.semestrovka.services;
 
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.mindrot.jbcrypt.BCrypt;
 import ru.itis.dis403.semestrovka.dto.*;
 import ru.itis.dis403.semestrovka.models.User;
 import ru.itis.dis403.semestrovka.repositories.UserRepository;
@@ -10,36 +9,46 @@ import java.sql.SQLException;
 
 public class UserService {
 
-    private UserRepository userRepository = new  UserRepository();
-    private BCryptPasswordEncoder bCrypt = new BCryptPasswordEncoder();
+    private final UserRepository userRepository = new UserRepository();
 
-    public User registration(UserRegistrationDTO userRegistrationDTO) throws SQLException {
+    private String hashPassword(String plainPassword) {
+        return BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
+    }
 
-        if (!isEmailAvailable(userRegistrationDTO.getEmail())){
+    private boolean checkPassword(String plainPassword, String hashedPassword) {
+        return BCrypt.checkpw(plainPassword, hashedPassword);
+    }
+
+    public User registration(UserRegistrationDTO userRegistrationDTO) throws Exception {
+        if (!isEmailAvailable(userRegistrationDTO.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
-
-        if (!isLoginAvailable(userRegistrationDTO.getLogin())){
-            throw new IllegalArgumentException("Login already exists");
+        if (!isLoginAvailable(userRegistrationDTO.getLogin())) {
+                throw new IllegalArgumentException("Login already exists");
         }
-
+        if (userRegistrationDTO.getPassword().length() < 6) {
+            throw new Exception("The password is too short");
+        }
+        if (!userRegistrationDTO.getPassword().equals(userRegistrationDTO.getPassword2())) {
+            throw new Exception("Passwords don't match");
+        }
+        if (!userRegistrationDTO.getPassword().matches("^[a-zA-Z0-9!@#$%^&*()_+=-]+$")) {
+            throw new Exception("Пароль может содержать только латинские буквы, цифры и символы");
+        }
         User user = new User();
         user.setLogin(userRegistrationDTO.getLogin());
         user.setBirthDate(userRegistrationDTO.getBirthDate());
         user.setEmail(userRegistrationDTO.getEmail());
-        user.setFirstName(userRegistrationDTO.getFirstName());
-        user.setLastName(userRegistrationDTO.getLastName());
-        user.setPhoneNumber(userRegistrationDTO.getPhoneNumber());
         user.setRole("USER");
-        user.setPasswordHash(bCrypt.encode(userRegistrationDTO.getPassword()));
-        userRepository.save(user);
+        user.setPasswordHash(hashPassword(userRegistrationDTO.getPassword()));
 
+        userRepository.save(user);
         return user;
     }
 
     public User login(UserLoginDTO userLoginDTO) throws SQLException {
         User user = userRepository.findByLogin(userLoginDTO.getLogin());
-        if (user != null && bCrypt.matches(userLoginDTO.getPassword(), user.getPasswordHash())) {
+        if (user != null && checkPassword(userLoginDTO.getPassword(), user.getPasswordHash())) {
             return user;
         }
         throw new IllegalArgumentException("Invalid login or password");
@@ -52,6 +61,7 @@ public class UserService {
         }
         throw new IllegalArgumentException("User not found");
     }
+
     public User findByLogin(String login) throws SQLException {
         User user = userRepository.findByLogin(login);
         if (user != null) {
@@ -108,23 +118,21 @@ public class UserService {
     }
 
     public void changePassword(PasswordChangeDTO dto) throws SQLException {
-
         User user = userRepository.findById(dto.getUserId());
 
-        if (!bCrypt.matches(dto.getOldPassword(), user.getPasswordHash())) {
+        if (!checkPassword(dto.getOldPassword(), user.getPasswordHash())) {
             throw new SecurityException("Старый пароль неверен");
         }
 
-        String newPasswordHash = bCrypt.encode(dto.getNewPassword());
-
+        String newPasswordHash = hashPassword(dto.getNewPassword());
         userRepository.updatePassword(dto.getUserId(), newPasswordHash);
     }
 
     public boolean isLoginAvailable(String login) throws SQLException {
-        return userRepository.existsByLogin(login);
+        return userRepository.findByLogin(login) == null;
     }
 
     public boolean isEmailAvailable(String email) throws SQLException {
-        return userRepository.existsByEmail(email);
+        return userRepository.findByEmail(email) == null;
     }
 }

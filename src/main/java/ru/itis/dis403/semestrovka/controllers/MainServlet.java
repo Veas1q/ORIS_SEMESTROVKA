@@ -10,18 +10,16 @@ import ru.itis.dis403.semestrovka.services.TopicService;
 
 import java.io.IOException;
 import java.sql.SQLException;
-@WebServlet("/")
-public class MainServlet extends HttpServlet {
-    private CategoryService categoryService = new CategoryService();
-    private TopicService topicService = new TopicService();
+@WebServlet(urlPatterns = {"/", "/home"})
+public class MainServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
+            req.setAttribute("req", req);
             req.setAttribute("categories", categoryService.getAllCategories());
             req.setAttribute("recentTopics", topicService.getRecentTopics(10));
             req.setAttribute("pinnedTopics", topicService.getPinnedTopics());
-
             req.getRequestDispatcher("/index.ftlh").forward(req, resp);
         } catch (SQLException e) {
             throw new ServletException(e);

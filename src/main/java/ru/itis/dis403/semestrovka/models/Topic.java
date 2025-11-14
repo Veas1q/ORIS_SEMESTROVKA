@@ -7,7 +7,7 @@ public class Topic {
     private String title;
     private Long categoryId;
     private Long UserId;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private Boolean isPinned;
     private Boolean isClosed;
     private Integer viewCount;
@@ -60,11 +60,11 @@ public class Topic {
         UserId = userId;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 

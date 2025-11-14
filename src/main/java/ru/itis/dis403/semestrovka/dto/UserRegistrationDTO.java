@@ -10,6 +10,8 @@ public class UserRegistrationDTO {
     private String lastName;
     private String phoneNumber;
     private LocalDate birthDate;
+    private String password2;
+
 
     public UserRegistrationDTO() {
     }
@@ -20,6 +22,14 @@ public class UserRegistrationDTO {
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
+    }
+
+    public String getPassword2() {
+        return password2;
+    }
+
+    public void setPassword2(String password2) {
+        this.password2 = password2;
     }
 
     public String getLogin() {

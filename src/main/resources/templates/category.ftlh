@@ -9,18 +9,18 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="/">Форум</a>
+        <a class="navbar-brand" href="/FORMACH_SEMESTROVKA_war/home">Форум</a>
         <div class="navbar-nav me-auto">
-            <a class="nav-link" href="/">Главная</a>
-            <a class="nav-link" href="/category/">Категории</a>
+            <a class="nav-link" href="/FORMACH_SEMESTROVKA_war/home">Главная</a>
+            <a class="nav-link" href="/FORMACH_SEMESTROVKA_war/category">Категории</a>
         </div>
         <div class="navbar-nav">
             <#if user??>
                 <span class="nav-link">Привет, ${user.login!''}!</span>
-                <a class="nav-link" href="/auth/logout">Выйти</a>
+                <a class="nav-link" href="auth/logout">Выйти</a>
             <#else>
-                <a class="nav-link" href="/auth/login">Войти</a>
-                <a class="nav-link" href="/auth/register">Регистрация</a>
+                <a class="nav-link" href="/FORMACH_SEMESTROVKA_war/auth/login">Войти</a>
+                <a class="nav-link" href="/FORMACH_SEMESTROVKA_war/auth/register">Регистрация</a>
             </#if>
         </div>
     </div>
@@ -29,8 +29,8 @@
 <div class="container mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Главная</a></li>
-            <li class="breadcrumb-item"><a href="/category/">Категории</a></li>
+            <li class="breadcrumb-item"><a href="/FORMACH_SEMESTROVKA_war/home">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/FORMACH_SEMESTROVKA_war/category">Категории</a></li>
             <li class="breadcrumb-item active">${category.name!''}</li>
         </ol>
     </nav>
@@ -38,7 +38,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>${category.name!''}</h1>
         <#if user??>
-            <a href="/topic/create?categoryId=${category.id!''}" class="btn btn-primary">Создать топик</a>
+            <a href="/FORMACH_SEMESTROVKA_war/topic/create?categoryId=${category.id!''}" class="btn btn-primary">Создать топик</a>
         </#if>
     </div>
 
@@ -63,7 +63,7 @@
                         </#if>
                     </div>
                 </div>
-                <p class="mb-1">Создан: ${(topic.createdAt?string('dd.MM.yyyy HH:mm'))!''}</p>
+                <p class="mb-1">Создан: ${topic.createdAt!"—"}</p>
             </a>
         </#list>
     </div>

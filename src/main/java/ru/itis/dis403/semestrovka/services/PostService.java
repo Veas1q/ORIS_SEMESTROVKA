@@ -36,11 +36,11 @@ public class PostService {
         return post;
     }
 
-    public Post updatePost(Post post, Long currentUserId) throws SQLException {
-        Post existingPost = postRepository.getPostById(post.getId());
-        if (existingPost != null) {
+    public Post updatePost(Long postId, Long currentUserId) throws SQLException {
+        Post post = postRepository.getPostById(postId);
+        if (post != null) {
             // Проверяем, что пользователь является автором поста
-            if (!existingPost.getUserId().equals(currentUserId)) {
+            if (!post.getUserId().equals(currentUserId)) {
                 throw new SecurityException("You can only edit your own posts");
             }
 
