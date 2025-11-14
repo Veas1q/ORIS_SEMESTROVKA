@@ -18,7 +18,7 @@ public class CategoryServlet extends BaseServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String pathInfo = req.getPathInfo();
-
+            req.setAttribute("contextPath", req.getContextPath());
             if (pathInfo == null || pathInfo.equals("/")) {
                 req.setAttribute("categories", categoryService.getAllCategories());
                 req.getRequestDispatcher("/categories.ftlh").forward(req, resp);

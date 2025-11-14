@@ -1,13 +1,11 @@
-<footer class="bg-dark text-white text-center py-3 mt-5">
-    <div class="container">
-        <p class="mb-0">
-            © 2025 ITIS Forum |
-            Привет,
-            <#if user??>
-                <strong>${user.login}</strong>
-            <#else>
-                <strong>Гость</strong>
-            </#if>
-        </p>
+</main>
+
+<footer class="bg-dark text-light mt-auto py-4">
+    <div class="container text-center">
+        <p class="mb-0">&copy; 2025 Formach. Все права защищены.</p>
     </div>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -69,6 +69,8 @@ public class TopicService {
         }
     }
 
+
+
     public void togglePinTopic(Long topicId, boolean pinned, Long pinnedByUserId) throws SQLException {
         Topic topic = topicRepository.findById(topicId);
         if (topic != null) {

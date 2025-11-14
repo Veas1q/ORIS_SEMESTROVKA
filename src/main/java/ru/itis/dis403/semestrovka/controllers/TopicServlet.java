@@ -6,12 +6,17 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ru.itis.dis403.semestrovka.models.Category;
+import ru.itis.dis403.semestrovka.models.Post;
 import ru.itis.dis403.semestrovka.models.Topic;
+import ru.itis.dis403.semestrovka.models.User;
 import ru.itis.dis403.semestrovka.services.PostService;
 import ru.itis.dis403.semestrovka.services.TopicService;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @WebServlet("/topic/*")
 public class TopicServlet extends BaseServlet {
@@ -20,7 +25,7 @@ public class TopicServlet extends BaseServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String pathInfo = req.getPathInfo();
-            req.setAttribute("req", req);
+            req.setAttribute("contextPath", req.getContextPath());
             if (pathInfo.equals("/create")) {
                 // Форма создания топика
                 req.setAttribute("categories", categoryService.getAllCategories());
@@ -29,18 +34,20 @@ public class TopicServlet extends BaseServlet {
                 req.getRequestDispatcher("/create-topic.ftlh").forward(req, resp);
 
             } else if (pathInfo.matches("/\\d+/edit")) {
-                // Форма редактирования топика
-                Long topicId = Long.parseLong(pathInfo.split("/")[1]);
+                Long topicId = Long.parseLong(req.getPathInfo().substring(1).replace("/edit", ""));
                 Topic topic = topicService.getTopicById(topicId);
+                User user = (User) req.getSession().getAttribute("user");
 
-                // Проверяем права
-                Long userId = (Long) req.getSession().getAttribute("userId");
-                if (!topic.getUserId().equals(userId)) {
-                    resp.sendError(403, "You can only edit your own topics");
+                if (topic == null || (user == null || (!topic.getUserId().equals(user.getId()) && ( user.getRole() != "ADMIN" || user.getRole() != "MODERATOR"    )))) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN);
                     return;
                 }
 
                 req.setAttribute("topic", topic);
+                req.setAttribute("contextPath", req.getContextPath());
+
+                 req.setAttribute("categories", categoryService.getAllCategories());
+
                 req.getRequestDispatcher("/edit-topic.ftlh").forward(req, resp);
 
             } else if (pathInfo.matches("/\\d+/delete")) {
@@ -54,11 +61,43 @@ public class TopicServlet extends BaseServlet {
                 // Просмотр топика /topic/123
                 Long topicId = Long.parseLong(pathInfo.substring(1));
                 Topic topic = topicService.getTopicById(topicId);
+
+                if (topic == null) {
+                    resp.sendError(404);
+                    return;
+                }
+
+
+                req.setAttribute("author", userService.findById(topic.getUserId()));
+
                 req.setAttribute("topic", topic);
-                req.setAttribute("posts", postService.getPostsByTopicId(topicId));
+
+                User currentUser = (User) req.getSession().getAttribute("user");
+
+                // Все посты
+                List<Post> posts = postService.getPostsByTopicId(topicId);
+                req.setAttribute("posts", posts);
+
+                for (Post post : posts) {
+                    if (currentUser != null) {
+                        post.setLikedByUser(postService.isReaction(post.getId(), currentUser.getId(), "LIKE"));
+                        post.setDislikedByUser(postService.isReaction(post.getId(), currentUser.getId(), "DISLIKE"));
+                    }
+                    post.setLikesCount(postService.getReactionCount(post.getId(), "LIKE"));
+                    post.setDislikesCount(postService.getReactionCount(post.getId(), "DISLIKE"));
+                }
+
+                req.setAttribute("user", currentUser);
+
+                req.setAttribute("session", req.getSession());
+
+// Автор топика
+                User topicAuthor = userService.findById(topic.getUserId());
+                req.setAttribute("topicAuthor", topicAuthor);
+// Категория
                 Category category = categoryService.getCategoryById(topic.getCategoryId());
                 req.setAttribute("category", category);
-                req.setAttribute("topicAuthor", userService.findById(topic.getUserId()));
+
                 topicService.incrementViewCount(topicId);
                 req.getRequestDispatcher("/topic.ftlh").forward(req, resp);
             }
@@ -108,7 +147,6 @@ public class TopicServlet extends BaseServlet {
                     resp.sendError(403, "You can only edit your own topics");
                     return;
                 }
-
                 // Обновляем данные
                 topic.setTitle(req.getParameter("title"));
                 topic.setCategoryId(Long.parseLong(req.getParameter("categoryId")));

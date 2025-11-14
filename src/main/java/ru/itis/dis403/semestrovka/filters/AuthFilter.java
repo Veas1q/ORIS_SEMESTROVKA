@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import ru.itis.dis403.semestrovka.models.User;
 
 import java.io.IOException;
 
@@ -41,6 +42,7 @@ public class AuthFilter implements Filter {
 
             session = request.getSession(true);
             session.setAttribute("redirectAfterLogin", target);
+
 
             response.sendRedirect(request.getContextPath() + "/auth/login");
         }

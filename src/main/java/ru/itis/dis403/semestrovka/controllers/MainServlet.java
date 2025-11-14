@@ -16,9 +16,9 @@ public class MainServlet extends BaseServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-            req.setAttribute("req", req);
+            req.setAttribute("contextPath", req.getContextPath());
             req.setAttribute("categories", categoryService.getAllCategories());
-            req.setAttribute("recentTopics", topicService.getRecentTopics(10));
+            req.setAttribute("topics", topicService.getRecentTopics(10));
             req.setAttribute("pinnedTopics", topicService.getPinnedTopics());
             req.getRequestDispatcher("/index.ftlh").forward(req, resp);
         } catch (SQLException e) {

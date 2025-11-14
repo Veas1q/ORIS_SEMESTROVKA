@@ -13,6 +13,42 @@ public class Post {
     private Boolean isPinnedInTopic = false;
     private Long pinnedByUserId;
     private LocalDateTime pinnedAt;
+    private boolean likedByUser = false;
+    private boolean dislikedByUser = false;
+    private int likesCount = 0;
+    private int dislikesCount = 0;
+
+    public boolean isDislikedByUser() {
+        return dislikedByUser;
+    }
+
+    public void setDislikedByUser(boolean dislikedByUser) {
+        this.dislikedByUser = dislikedByUser;
+    }
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public int getDislikesCount() {
+        return dislikesCount;
+    }
+
+    public void setDislikesCount(int dislikesCount) {
+        this.dislikesCount = dislikesCount;
+    }
+
+    public boolean isLikedByUser() {
+        return likedByUser;
+    }
+
+    public void setLikedByUser(boolean likedByUser) {
+        this.likedByUser = likedByUser;
+    }
 
     public Long getPinnedByUserId() {
         return pinnedByUserId;

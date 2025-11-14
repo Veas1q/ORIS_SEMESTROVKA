@@ -68,11 +68,11 @@ public class TopicRepository {
     }
 
     // TopicRepository.java
-    public void addTopic(Topic topic) throws SQLException {
+    public Topic addTopic(Topic topic) throws SQLException {
         String sql = """
         INSERT INTO topics (title, category_id, user_id, age_restriction)
         VALUES (?, ?, ?, ?)
-        RETURNING id, created_at
+        RETURNING id
         """;
 
         try (Connection conn = DBConnection.getConnection();
@@ -82,7 +82,16 @@ public class TopicRepository {
             ps.setLong(2, topic.getCategoryId());
             ps.setLong(3, topic.getUserId());
             ps.setInt(4, topic.getAgeRestriction());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    topic.setId(rs.getLong("id"));
+                } else {
+                    throw new SQLException("Не удалось создать топик - id не вернулся");
+                }
+            }
         }
+        return topic;
     }
 
     public void updateTopic(Topic topic) throws SQLException {

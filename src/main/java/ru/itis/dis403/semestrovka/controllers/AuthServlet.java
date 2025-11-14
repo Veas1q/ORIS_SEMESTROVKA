@@ -18,8 +18,7 @@ public class AuthServlet extends BaseServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
-        request.setAttribute("req", request);
-
+        request.setAttribute("contextPath", request.getContextPath());
         if ("/login".equals(path)) {
             request.getRequestDispatcher("/login.ftlh").forward(request, response);
         } else if ("/register".equals(path)) {
@@ -33,6 +32,7 @@ public class AuthServlet extends BaseServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
+        request.setAttribute("req", request);
 
         if ("/register".equals(path)) {
             handleRegister(request, response);

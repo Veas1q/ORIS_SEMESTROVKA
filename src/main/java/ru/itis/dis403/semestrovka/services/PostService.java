@@ -36,13 +36,14 @@ public class PostService {
         return post;
     }
 
-    public Post updatePost(Long postId, Long currentUserId) throws SQLException {
+    public Post updatePost(Long postId, Long currentUserId, String newText) throws SQLException {
         Post post = postRepository.getPostById(postId);
         if (post != null) {
             // Проверяем, что пользователь является автором поста
             if (!post.getUserId().equals(currentUserId)) {
                 throw new SecurityException("You can only edit your own posts");
             }
+            post.setPostText(newText);
 
             postRepository.updatePost(post);
             return post;
@@ -105,5 +106,29 @@ public class PostService {
     public int getPostCountInTopic(Long topicId) throws SQLException {
         List<Post> posts = postRepository.getAllPostFromTopic(topicId);
         return posts.size();
+    }
+
+    public void toggleLike(Long postId, Long userId) throws SQLException {
+        postRepository.toggleLike(postId, userId);
+    }
+
+    public int getLikesCount(Long postId) throws SQLException {
+        return postRepository.getLikesCount(postId);
+    }
+
+    public boolean isLiked(Long postId, Long userId) throws SQLException {
+        return postRepository.isLikedByUser(postId, userId);
+    }
+
+    public void toggleReaction(Long postId, Long userId, String reactionType) throws SQLException {
+        postRepository.toggleReaction(postId, userId, reactionType);
+    }
+
+    public int getReactionCount(Long postId, String reactionType) throws SQLException {
+        return postRepository.getReactionCount(postId, reactionType);
+    }
+
+    public boolean isReaction(Long postId, Long userId, String reactionType) throws SQLException {
+        return postRepository.isReaction(postId, userId, reactionType);
     }
 }

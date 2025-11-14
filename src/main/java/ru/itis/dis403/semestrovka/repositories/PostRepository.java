@@ -52,16 +52,19 @@ public class PostRepository {
         return null;
     }
 
-    public void addPost(Post post) throws SQLException {
+    public Post addPost(Post post) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
-                     "INSERT INTO posts (user_id, topic_id, post_text, is_first_post) VALUES (?, ?, ?, ?)"))  {
+                     "INSERT INTO posts (user_id, topic_id, post_text) VALUES (?, ?, ?) RETURNING id" ))  {
             preparedStatement.setLong(1, post.getUserId());
             preparedStatement.setLong(2, post.getTopicId());
             preparedStatement.setString(3, post.getPostText());
-            preparedStatement.setBoolean(4, post.getFirstPost());
-
-            preparedStatement.executeUpdate();
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                if (rs.next()) {
+                    post.setId(rs.getLong("id"));
+                }
+            }
+            return post;
         }
     }
 
@@ -105,6 +108,132 @@ public class PostRepository {
             }
         }
         return posts;
+    }
+
+    public void toggleLike(Long postId, Long userId) throws SQLException {
+        String sqlCheck = "SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?";
+        String sqlInsert = "INSERT INTO post_reactions (post_id, user_id, reaction_type) VALUES (?, ?, 'LIKE')";
+        String sqlUpdate = "UPDATE post_reactions SET reaction_type = 'LIKE' WHERE post_id = ? AND user_id = ?";
+        String sqlDelete = "DELETE FROM post_reactions WHERE post_id = ? AND user_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement check = conn.prepareStatement(sqlCheck)) {
+
+            check.setLong(1, postId);
+            check.setLong(2, userId);
+            ResultSet rs = check.executeQuery();
+
+            if (rs.next()) {
+                String current = rs.getString("reaction_type");
+                if ("LIKE".equals(current)) {
+                    // Уже лайкнул — убираем
+                    try (PreparedStatement delete = conn.prepareStatement(sqlDelete)) {
+                        delete.setLong(1, postId);
+                        delete.setLong(2, userId);
+                        delete.executeUpdate();
+                    }
+                } else {
+                    // Был дизлайк — меняем на лайк
+                    try (PreparedStatement update = conn.prepareStatement(sqlUpdate)) {
+                        update.setLong(1, postId);
+                        update.setLong(2, userId);
+                        update.executeUpdate();
+                    }
+                }
+            } else {
+                // Ничего не было — ставим лайк
+                try (PreparedStatement insert = conn.prepareStatement(sqlInsert)) {
+                    insert.setLong(1, postId);
+                    insert.setLong(2, userId);
+                    insert.executeUpdate();
+                }
+            }
+        }
+    }
+
+    public int getLikesCount(Long postId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM post_reactions WHERE post_id = ? AND reaction_type = 'LIKE'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, postId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+    public boolean isLikedByUser(Long postId, Long userId) throws SQLException {
+        String sql = "SELECT 1 FROM post_reactions WHERE post_id = ? AND user_id = ? AND reaction_type = 'LIKE'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, postId);
+            ps.setLong(2, userId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        }
+    }
+
+    public void toggleReaction(Long postId, Long userId, String reactionType) throws SQLException {
+        String checkSql = "SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?";
+        String insertSql = "INSERT INTO post_reactions (post_id, user_id, reaction_type) VALUES (?, ?, ?)";
+        String updateSql = "UPDATE post_reactions SET reaction_type = ? WHERE post_id = ? AND user_id = ?";
+        String deleteSql = "DELETE FROM post_reactions WHERE post_id = ? AND user_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement check = conn.prepareStatement(checkSql)) {
+            check.setLong(1, postId);
+            check.setLong(2, userId);
+            ResultSet rs = check.executeQuery();
+
+            if (rs.next()) {
+                String current = rs.getString(1);
+                if (current.equals(reactionType)) {
+                    // Уже стоит — убираем
+                    try (PreparedStatement delete = conn.prepareStatement(deleteSql)) {
+                        delete.setLong(1, postId);
+                        delete.setLong(2, userId);
+                        delete.executeUpdate();
+                    }
+                } else {
+                    // Меняем на другой
+                    try (PreparedStatement update = conn.prepareStatement(updateSql)) {
+                        update.setString(1, reactionType);
+                        update.setLong(2, postId);
+                        update.setLong(3, userId);
+                        update.executeUpdate();
+                    }
+                }
+            } else {
+                // Ничего нет — ставим
+                try (PreparedStatement insert = conn.prepareStatement(insertSql)) {
+                    insert.setLong(1, postId);
+                    insert.setLong(2, userId);
+                    insert.setString(3, reactionType);
+                    insert.executeUpdate();
+                }
+            }
+        }
+    }
+
+    public int getReactionCount(Long postId, String reactionType) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM post_reactions WHERE post_id = ? AND reaction_type = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, postId);
+            ps.setString(2, reactionType);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    public boolean isReaction(Long postId, Long userId, String reactionType) throws SQLException {
+        String sql = "SELECT 1 FROM post_reactions WHERE post_id = ? AND user_id = ? AND reaction_type = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, postId);
+            ps.setLong(2, userId);
+            ps.setString(3, reactionType);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        }
     }
 
     private static Post mapPost(ResultSet rs) throws SQLException {
