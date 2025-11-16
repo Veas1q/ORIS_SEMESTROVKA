@@ -39,6 +39,31 @@
                     </div>
                     <p class="mb-0 mt-1">${post.postText}</p>
                 </div>
+                <#if post.attachments?? && (post.attachments?size > 0)>
+                    <div class="mt-3 p-3 border rounded bg-light">
+                        <strong>Вложения:</strong>
+                        <div class="row row-cols-1 row-cols-md-3 g-3 mt-2">
+                            <#list post.attachments as att>
+                                <div class="col">
+                                    <#if att.mimeType?starts_with("image/")>
+                                        <a href="${contextPath}${att.filePath}" target="_blank">
+                                            <img src="${contextPath}${att.filePath}"
+                                                 class="img-fluid rounded"
+                                                 style="max-height: 200px; object-fit: cover;">
+                                        </a>
+                                    <#else>
+                                        <a href="${contextPath}${att.filePath}"
+                                           target="_blank"
+                                           class="btn btn-sm btn-outline-secondary d-block text-start">
+                                            ${att.filename}<br>
+                                            <small>${(att.fileSize!0)?string("#,##0")} байт</small>
+                                        </a>
+                                    </#if>
+                                </div>
+                            </#list>
+                        </div>
+                    </div>
+                </#if>
 
                 <div class="d-flex flex-column align-items-end gap-2">
                     <!-- ЛАЙК -->
@@ -58,34 +83,77 @@
                     </div>
 
                     <!-- КНОПКИ РЕД/УДАЛ -->
-                    <#if user?? && (user.id == post.userId || user.role == 'ADMIN')>
-                        <div class="d-flex gap-1 mt-1">
-                            <a href="${contextPath!''}/post/${post.id}/edit"
-                               class="btn btn-sm btn-outline-primary">Edit</a>
-                            <a href="${contextPath!''}/post/${post.id}/delete"
-                               onclick="return confirm('Удалить пост?')"
-                               class="btn btn-sm btn-outline-danger">Delete</a>
+                    <#if user?? && (user.id == post.userId || user.role == 'ADMIN' || user.role == 'MODERATOR')>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal${post.id}">
+                            Удалить
+                        </button>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="deleteModal${post.id}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">Удалить пост?</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Это действие <strong>нельзя отменить</strong>.</p>
+                                        <p><strong>Автор:</strong> ${userService.findById(post.userId).login!"[Удалён]"}</p>
+                                        <p><strong>Текст:</strong> ${post.postText?html}</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form action="${contextPath!''}/post/${post.id}/delete" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-danger">Да, удалить</button>
+                                        </form>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </#if>
                 </div>
             </div>
         </div>
     </#list>
-</div>
-
-<#if user??>
-    <div class="card">
-        <div class="card-body">
-            <strong class="d-block mb-2">Написать ответ:</strong>
-            <form action="${contextPath!''}/post/create" method="post">
-                <input type="hidden" name="topicId" value="${topic.id}">
-                <textarea name="postText" class="form-control" rows="3" required placeholder="Ваш ответ..."></textarea>
-                <button type="submit" class="btn btn-primary mt-2">Отправить</button>
-            </form>
-        </div>
+</div><#if user??>
+<div class="card mt-5 shadow-sm">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Написать ответ</h5>
     </div>
+    <div class="card-body">
+        <form action="${contextPath!''}/post/create" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="topicId" value="${topic.id}">
+
+            <div class="mb-3">
+                <label for="postText" class="form-label">Ваш ответ</label>
+                <textarea name="postText"
+                          id="postText"
+                          class="form-control"
+                          rows="6"
+                          placeholder="Напишите что-нибудь полезное..."
+                          required></textarea>
+                <div class="form-text text-muted mt-1">
+
+
+            <div class="mb-3">
+                <label for="file" class="form-label">Прикрепить файлы</label>
+                <input type="file" name="file" id="file" class="form-control" multiple
+                       accept="image/*,.pdf,.zip,.doc,.docx">
+                <div class="form-text text-muted mt-1">
+                    До 10 МБ каждый. Можно несколько.
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success btn-lg">
+                    Отправить ответ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 <#else>
-    <div class="alert alert-info text-center">
+    <div class="alert alert-info text-center mt-4">
         <a href="${contextPath!''}/auth/login" class="alert-link">Войдите</a>, чтобы ответить
     </div>
 </#if>

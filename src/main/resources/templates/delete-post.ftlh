@@ -23,18 +23,18 @@
 
             <div class="post-preview mb-4">
                 <p><strong>Автор:</strong> ${postAuthor.login}</p>
-                <p><strong>Создан:</strong> ${post.createdAt?string("dd.MM.yyyy HH:mm")}</p>
+                <p><strong>Создан:</strong> ${post.createdAt!"—"}</p>
                 <hr>
                 <p>${post.postText}</p>
             </div>
 
             <div class="text-center">
-                <form action="/post/${post.id}/delete" method="post" style="display: inline;">
+                <form action="${contextPath}/post/${post.id}/delete" method="post" style="display: inline;">
                     <button type="submit" class="btn btn-danger btn-lg px-5">
                         Да, удалить навсегда
                     </button>
                 </form>
-                <a href="/topic/${post.topicId}" class="btn btn-secondary btn-lg px-5 ms-3">
+                <a href="${contextPath}/topic/${post.topicId}" class="btn btn-secondary btn-lg px-5 ms-3">
                     Нет, оставить
                 </a>
             </div>

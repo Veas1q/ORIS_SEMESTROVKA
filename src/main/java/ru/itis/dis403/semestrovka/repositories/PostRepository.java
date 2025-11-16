@@ -10,13 +10,16 @@ import java.util.List;
 
 public class PostRepository {
 
-    public List<Post> getAllPostFromTopic(Long id) throws SQLException {
+    public List<Post> getAllPostFromTopic(Long id)  {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM posts WHERE topic_id = ? ORDER BY created_at ASC");) {
 
             preparedStatement.setLong(1, id);
 
             return extractPosts(preparedStatement);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Ошибка при получении постов топика");
         }
     }
 
@@ -31,6 +34,9 @@ public class PostRepository {
                     return mapPost(resultSet);
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Не удалось найти пост");
         }
 
         return null;
@@ -55,7 +61,7 @@ public class PostRepository {
     public Post addPost(Post post) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(
-                     "INSERT INTO posts (user_id, topic_id, post_text) VALUES (?, ?, ?) RETURNING id" ))  {
+                     "INSERT INTO posts (user_id, topic_id, post_text) VALUES (?, ?, ?) RETURNING id")) {
             preparedStatement.setLong(1, post.getUserId());
             preparedStatement.setLong(2, post.getTopicId());
             preparedStatement.setString(3, post.getPostText());
@@ -100,17 +106,19 @@ public class PostRepository {
         }
     }
 
-    private List<Post> extractPosts(PreparedStatement ps) throws SQLException {
+    private List<Post> extractPosts(PreparedStatement ps) {
         List<Post> posts = new ArrayList<>();
         try (ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 posts.add(mapPost(rs));
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(" Не удалось получить посты");
         }
         return posts;
     }
 
-    public void toggleLike(Long postId, Long userId) throws SQLException {
+    public void toggleLike(Long postId, Long userId) {
         String sqlCheck = "SELECT reaction_type FROM post_reactions WHERE post_id = ? AND user_id = ?";
         String sqlInsert = "INSERT INTO post_reactions (post_id, user_id, reaction_type) VALUES (?, ?, 'LIKE')";
         String sqlUpdate = "UPDATE post_reactions SET reaction_type = 'LIKE' WHERE post_id = ? AND user_id = ?";
@@ -148,6 +156,8 @@ public class PostRepository {
                     insert.executeUpdate();
                 }
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(" Не удалось получить посты");
         }
     }
 
@@ -160,6 +170,7 @@ public class PostRepository {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
+
     public boolean isLikedByUser(Long postId, Long userId) throws SQLException {
         String sql = "SELECT 1 FROM post_reactions WHERE post_id = ? AND user_id = ? AND reaction_type = 'LIKE'";
         try (Connection conn = DBConnection.getConnection();
@@ -233,6 +244,30 @@ public class PostRepository {
             ps.setString(3, reactionType);
             ResultSet rs = ps.executeQuery();
             return rs.next();
+        }
+    }
+
+
+    public void deletePostsByTopicId(Long topicId) {
+        String sql = "DELETE FROM posts WHERE topic_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, topicId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Ошибка при удалении постов топика: " + topicId, e);
+        }
+    }
+
+    public void deleteReactionsByPostId(Long postId) {
+        String sql = "DELETE FROM post_reactions WHERE post_id = ?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, postId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при удалении реакций постов: " + postId, e);
         }
     }
 

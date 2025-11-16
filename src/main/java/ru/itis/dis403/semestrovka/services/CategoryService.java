@@ -27,7 +27,7 @@ public class CategoryService {
 
     public Category createCategory(Category category) throws SQLException {
         List<Category> existing = categoryRepository.getCategoryByName(category.getName());
-        if (!existing.isEmpty()) {
+        if (!existing.isEmpty() || existing == null) {
             throw new IllegalArgumentException("Category with this name already exists");
         }
 

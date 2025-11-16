@@ -26,6 +26,7 @@ public class TopicServlet extends BaseServlet {
         try {
             String pathInfo = req.getPathInfo();
             req.setAttribute("contextPath", req.getContextPath());
+
             if (pathInfo.equals("/create")) {
                 // Форма создания топика
                 req.setAttribute("categories", categoryService.getAllCategories());
@@ -66,17 +67,17 @@ public class TopicServlet extends BaseServlet {
                     resp.sendError(404);
                     return;
                 }
-
+                List<Post> posts = postService.getPostsByTopicId(topicId);
+                for (Post post : posts) {
+                    post.setAttachmentsList(attachmentService.findByPostId(post.getId()));
+                }
+                req.setAttribute("posts", posts);
 
                 req.setAttribute("author", userService.findById(topic.getUserId()));
 
                 req.setAttribute("topic", topic);
 
                 User currentUser = (User) req.getSession().getAttribute("user");
-
-                // Все посты
-                List<Post> posts = postService.getPostsByTopicId(topicId);
-                req.setAttribute("posts", posts);
 
                 for (Post post : posts) {
                     if (currentUser != null) {
@@ -158,7 +159,8 @@ public class TopicServlet extends BaseServlet {
                 // УДАЛЕНИЕ топика
                 Long topicId = Long.parseLong(pathInfo.split("/")[1]);
                 Long userId = (Long) req.getSession().getAttribute("userId");
-                String userRole = (String) req.getSession().getAttribute("userRole");
+                User user = userService.findById(userId);
+                String userRole = user.getRole();
 
                 // Проверяем права
                 Topic topic = topicService.getTopicById(topicId);
@@ -168,6 +170,8 @@ public class TopicServlet extends BaseServlet {
 
                 if (canDelete) {
                     Long categoryId = topic.getCategoryId();
+                    postService.deleteReactionsByPostId(topicId);
+                    postService.deletePostsByTopicId(topic.getId());
                     topicService.deleteTopic(topicId);
                     resp.sendRedirect(req.getContextPath() + "/category/" + categoryId);
                 } else {

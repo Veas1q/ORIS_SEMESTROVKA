@@ -23,8 +23,7 @@
                     </h3>
                 </div>
                 <div class="card-body p-4">
-                    <form action="${req.contextPath}/post/create" method="post">
-                        <!-- ОБЯЗАТЕЛЬНО с ${req.contextPath} — иначе ломается сессия! -->
+                    <form action="${contextPath!''}/post/create" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="topicId" value="${topic.id}">
 
                         <div class="mb-4">
@@ -39,13 +38,23 @@
                                       required
                                       minlength="10"
                                       maxlength="5000"></textarea>
+
                             <div class="form-text text-muted mt-2">
                                 Минимум 10 символов • Максимум 5000
                             </div>
                         </div>
 
+                        <div class="mb-4">
+                            <label for="file" class="form-label fs-5">Прикрепить файлы</label>
+                            <input type="file" name="file" id="file" class="form-control" multiple
+                                   accept="image/*, .pdf, .zip, .doc, .docx">
+                            <div class="form-text text-muted mt-2">
+                                До 10 МБ каждый. Можно несколько.
+                            </div>
+                        </div>
+
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="${req.contextPath}/topic/${topic.id}" class="btn btn-secondary me-md-2">
+                            <a href="${contextPath!''}/topic/${topic.id}" class="btn btn-secondary me-md-2">
                                 Отмена
                             </a>
                             <button type="submit" class="btn btn-success btn-lg">

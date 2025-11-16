@@ -3,6 +3,15 @@
 
 <h1 class="mb-4">Категории форума</h1>
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div></div> <!-- Пустой div для выравнивания, если нет заголовка категории -->
+    <#if user?? && (user.role == 'ADMIN' || user.role == 'MODERATOR')>
+        <a href="${contextPath!''}/category/create" class="btn btn-primary">
+            Создать категорию
+        </a>
+    </#if>
+</div>
+
 <div class="row">
     <#list categories![] as category>
         <div class="col-md-6 mb-3">
