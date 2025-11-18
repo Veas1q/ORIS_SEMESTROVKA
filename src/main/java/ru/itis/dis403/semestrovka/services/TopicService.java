@@ -7,7 +7,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class TopicService {
-    private TopicRepository topicRepository = new TopicRepository();
+    private final TopicRepository topicRepository;
+
+    public TopicService(TopicRepository topicRepository) {
+        this.topicRepository = topicRepository;
+    }
 
     public List<Topic> getAllTopics() throws SQLException {
         return topicRepository.findAll();
@@ -33,8 +37,16 @@ public class TopicService {
         return topicRepository.findPinned();
     }
 
+    public List<Topic> searchTopicsByTitle(String title) throws SQLException {
+        return topicRepository.searchTopicsByTitle(title);
+    }
+
     public List<Topic> getTopicsByUserId(Long userId) throws SQLException {
         return topicRepository.findByUserId(userId);
+    }
+
+    public void deleteTopicsByCategoryId (Long categoryId) throws SQLException {
+        topicRepository.deleteTopicsByCategoryId(categoryId);
     }
 
     public Topic createTopic(Topic topic) throws SQLException {

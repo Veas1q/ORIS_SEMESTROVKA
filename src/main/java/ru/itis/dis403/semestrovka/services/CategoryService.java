@@ -7,7 +7,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class CategoryService {
-    private CategoryRepository categoryRepository = new CategoryRepository();
+    private final CategoryRepository categoryRepository;
+
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
 
     public List<Category> getAllCategories() throws SQLException {
         return categoryRepository.getAllCategories();

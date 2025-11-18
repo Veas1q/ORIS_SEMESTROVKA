@@ -12,6 +12,7 @@ import ru.itis.dis403.semestrovka.models.User;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @WebServlet("/auth/*")
 public class AuthServlet extends BaseServlet {
@@ -73,7 +74,6 @@ public class AuthServlet extends BaseServlet {
             request.getRequestDispatcher("/register.ftlh").forward(request, response);
         }
     }
-
     private void handleLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         UserLoginDTO dto = new UserLoginDTO();
         dto.setLogin(request.getParameter("login"));
@@ -81,6 +81,23 @@ public class AuthServlet extends BaseServlet {
 
         try {
             User user = userService.login(dto);
+
+            // ПРОВЕРКА БАНА
+            if (user.getIsBanned()) {
+                // Авто-разбан, если срок истёк
+                if (user.getBannedUntil() != null && user.getBannedUntil().isBefore(LocalDateTime.now())) {
+                    userService.unbanUser(user.getId());
+                    user = userService.findById(user.getId()); // Обновляем объект
+                } else {
+                    // БАН АКТИВЕН → ПЕРЕНАПРАВЛЯЕМ НА СТРАНИЦУ БЛОКИРОВКИ
+                    request.setAttribute("banReason", user.getBanReason());
+                    request.setAttribute("bannedUntil", user.getBannedUntil());
+                    request.getRequestDispatcher("/banned.ftlh").forward(request, response);
+                    return;
+                }
+            }
+
+            // Если не забанен — логиним
             HttpSession session = request.getSession();
             session.setAttribute("userId", user.getId());
             session.setAttribute("user", user);
@@ -92,6 +109,7 @@ public class AuthServlet extends BaseServlet {
             } else {
                 response.sendRedirect(request.getContextPath() + "/");
             }
+
         } catch (Exception e) {
             request.setAttribute("error", "Неверный логин или пароль");
             request.setAttribute("req", request);

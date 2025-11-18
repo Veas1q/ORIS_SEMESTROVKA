@@ -100,9 +100,63 @@ public class TopicRepository {
                      "UPDATE topics SET title = ?, category_id = ?, age_restriction = ? WHERE id = ?")) {
             preparedStatement.setString(1, topic.getTitle());
             preparedStatement.setLong(2, topic.getCategoryId());
-            preparedStatement.setInt(3, topic.getAgeRestriction());
+            if (topic.getAgeRestriction() != null   ) {
+                preparedStatement.setInt(3, topic.getAgeRestriction());
+            } else {
+                preparedStatement.setInt(3, 0);
+            }
             preparedStatement.setLong(4, topic.getId());
             preparedStatement.executeUpdate();
+        }
+    }
+
+    public List<Topic> searchTopicsByTitle(String query) throws SQLException {
+        String sql = """
+        SELECT id, title, created_at, category_id 
+        FROM topics 
+        WHERE LOWER(title) LIKE LOWER(?) 
+        ORDER BY created_at DESC 
+        LIMIT 50
+        """;
+
+        String likePattern = "%" + query.trim() + "%";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, likePattern);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<Topic> results = new ArrayList<>();
+
+                while (rs.next()) {
+                    Topic topic = new Topic();
+
+                    topic.setId(rs.getLong("id"));
+                    topic.setTitle(rs.getString("title"));
+                    topic.setCategoryId(rs.getLong("category_id"));
+
+                    Timestamp timestamp = rs.getTimestamp("created_at");
+                    if (timestamp != null) {
+                        topic.setCreatedAt(timestamp.toLocalDateTime().toString());
+                    } else {
+                        topic.setCreatedAt(null);
+                    }
+
+                    results.add(topic);
+                }
+                return results;
+            }
+        }
+    }
+
+    public void deleteTopicsByCategoryId(Long categoryId) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement("delete from topics where category_id = ?")) {
+            preparedStatement.setLong(1 , categoryId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -173,7 +227,6 @@ public class TopicRepository {
         topic.setClosedAt(getNullableTimestamp(rs, "closed_at"));
         Timestamp ts = rs.getTimestamp("created_at");
         if (ts != null) {
-            // Форматируем сразу как "13.11.2025 21:27"
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
             topic.setCreatedAt(ts.toLocalDateTime().format(fmt));
         } else {

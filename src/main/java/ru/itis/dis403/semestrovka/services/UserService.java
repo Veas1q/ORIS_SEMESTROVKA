@@ -6,10 +6,17 @@ import ru.itis.dis403.semestrovka.models.User;
 import ru.itis.dis403.semestrovka.repositories.UserRepository;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class UserService {
 
-    private final UserRepository userRepository = new UserRepository();
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     private String hashPassword(String plainPassword) {
         return BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
@@ -54,12 +61,16 @@ public class UserService {
         throw new IllegalArgumentException("Invalid login or password");
     }
 
-    public User findById(Long id) throws SQLException {
+    public User findById(Long id)  {
         User user = userRepository.findById(id);
         if (user != null) {
             return user;
         }
         throw new IllegalArgumentException("User not found");
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.getAllUsers();
     }
 
     public User findByLogin(String login) throws SQLException {
@@ -78,24 +89,24 @@ public class UserService {
         throw new IllegalArgumentException("User not found");
     }
 
-    public User userUpdate(User user, Long currentUserId) throws SQLException {
-        if (!user.getId().equals(currentUserId)) {
-            throw new SecurityException("You can only update your own profile");
-        }
-        User userUpdate = userRepository.findById(user.getId());
-        if (userUpdate != null) {
-            userUpdate.setLogin(user.getLogin());
-            userUpdate.setFirstName(user.getFirstName());
-            userUpdate.setLastName(user.getLastName());
-            userUpdate.setEmail(user.getEmail());
-            userUpdate.setPhoneNumber(user.getPhoneNumber());
-            userUpdate.setBirthDate(user.getBirthDate());
-            userUpdate.setGender(user.getGender());
+    public void banUser(Long id, String reason, LocalDateTime until) throws SQLException {
+        userRepository.banUser(id, reason, until);
+    }
 
-            userRepository.userUpdate(userUpdate);
-            return userUpdate;
-        }
-        throw new IllegalArgumentException("User not found");
+    public void unbanUser(Long id) throws SQLException {
+        userRepository.unbanUser(id);
+    }
+
+    public void updateAvatar(Long userId, String avatarUrl) throws SQLException {
+        userRepository.updateAvatar(userId, avatarUrl);
+    }
+
+    public void updateUserRole(Long userId, String role) throws SQLException {
+        userRepository.updateRole(userId, role);
+    }
+
+    public void userUpdate(Long userId, String firstName, String lastName, String email, String phone, LocalDate birthDate) throws SQLException {
+        userRepository.updateProfile(userId, firstName, lastName, email, phone, birthDate);
     }
 
     public User adminUpdate(User user) throws SQLException {

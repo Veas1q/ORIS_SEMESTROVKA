@@ -9,7 +9,6 @@ public abstract class BaseServlet extends HttpServlet {
     protected CategoryService categoryService;
     protected TopicService topicService;
     protected PostService postService;
-    protected AttachmentService attachmentService;
 
     public void init() {
         var servletContext = getServletContext();
@@ -17,6 +16,5 @@ public abstract class BaseServlet extends HttpServlet {
         postService = (PostService) servletContext.getAttribute("postService");
         topicService = (TopicService) servletContext.getAttribute("topicService");
         userService = (UserService) servletContext.getAttribute("userService");
-        attachmentService = (AttachmentService) servletContext.getAttribute("attachmentService");
     }
 }

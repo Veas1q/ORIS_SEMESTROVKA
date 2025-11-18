@@ -3,24 +3,27 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="m-0">${topic.title}</h1>
-    <#if user?? && (user.id == topic.userId || user.role == 'ADMIN')>
+    <#if user?? && (user.id == topic.userId || user.role == 'ADMIN' || user.role == 'MODERATOR')>
         <div>
-            <a href="${contextPath!''}/topic/${topic.id}/edit" class="btn btn-sm btn-outline-warning me-1">
-                Edit
-            </a>
-            <a href="${contextPath!''}/topic/${topic.id}/delete"
-               onclick="return confirm('Удалить топик?')" class="btn btn-sm btn-outline-danger">
-                Delete
-            </a>
+            <a href="${contextPath}/topic/${topic.id}/edit" class="btn btn-sm btn-outline-warning me-1">Редактировать</a>
+            <form action="${contextPath}/topic/${topic.id}/delete" method="post" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm('Удалить топик и все ответы? Это нельзя отменить.')">
+                    Удалить
+                </button>
+            </form>
         </div>
     </#if>
 </div>
 
-<div class="card mb-4">
+<div class="card mb-4 border-primary">
     <div class="card-body">
-        <p class="card-text">${topic.firstPostText!''}</p>
+        <p class="card-text mb-3">${topic.firstPostText!''}</p>
         <p class="text-muted small mb-0">
-            <strong class="text-dark">Автор: ${(author.login)!"[Удалён]"}</strong> • ${topic.createdAt!"—"}
+            <strong>Автор: ${(author.login)!"[Удалён]"}</strong>
+            <#if topic.createdAt??>
+                • ${topic.createdAt?replace("T", " ")?substring(0, 16)}
+            </#if>
         </p>
     </div>
 </div>
@@ -30,154 +33,96 @@
 <div class="list-group mb-4">
     <#list posts as post>
         <#assign postAuthor = userService.findById(post.userId)! />
-        <div class="list-group-item p-3">
+        <div class="list-group-item p-4">
             <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1 me-3">
-                    <div class="d-flex align-items-center mb-1">
-                        <strong class="text-primary me-2">${postAuthor?? ? string(postAuthor.login, "[Удалён]")}</strong>
-                        <small class="text-muted">${post.createdAt!"—"}</small>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                        <strong class="me-2">${postAuthor?? ? string(postAuthor.login, "[Удалён]")}</strong>
+                        <small class="text-muted">
+                            <#if post.createdAt??>
+                                • ${post.createdAt?replace("T", " ")?substring(0, 16)}
+                            </#if>
+                        </small>
                     </div>
-                    <p class="mb-0 mt-1">${post.postText}</p>
-                </div>
-                <#if post.attachments?? && (post.attachments?size > 0)>
-                    <div class="mt-3 p-3 border rounded bg-light">
-                        <strong>Вложения:</strong>
-                        <div class="row row-cols-1 row-cols-md-3 g-3 mt-2">
-                            <#list post.attachments as att>
-                                <div class="col">
-                                    <#if att.mimeType?starts_with("image/")>
-                                        <a href="${contextPath}${att.filePath}" target="_blank">
-                                            <img src="${contextPath}${att.filePath}"
-                                                 class="img-fluid rounded"
-                                                 style="max-height: 200px; object-fit: cover;">
-                                        </a>
-                                    <#else>
-                                        <a href="${contextPath}${att.filePath}"
-                                           target="_blank"
-                                           class="btn btn-sm btn-outline-secondary d-block text-start">
-                                            ${att.filename}<br>
-                                            <small>${(att.fileSize!0)?string("#,##0")} байт</small>
-                                        </a>
-                                    </#if>
-                                </div>
-                            </#list>
-                        </div>
-                    </div>
-                </#if>
+                    <p class="mb-3">${post.postText}</p>
 
-                <div class="d-flex flex-column align-items-end gap-2">
-                    <!-- ЛАЙК -->
-                    <div class="d-flex align-items-center gap-1">
-                        <button class="btn btn-sm btn-outline-success like-btn" data-post-id="${post.id}" data-reaction="LIKE">
-                            ❤️
+                    <div class="reaction-container d-flex gap-3">
+                        <button class="btn btn-outline-success reaction-btn
+                            <#if userReactionMap?? && userReactionMap[post.id?c]?? && userReactionMap[post.id?c] == 'LIKE'>btn-success</#if>"
+                                data-reaction="LIKE" data-post-id="${post.id}">
+                            <i class="bi bi-hand-thumbs-up"></i> <span class="like-count">${post.likes!0}</span>
                         </button>
-                        <span class="like-count badge bg-success text-white">${post.likesCount!0}</span>
-                    </div>
-
-                    <!-- ДИЗЛАЙК -->
-                    <div class="d-flex align-items-center gap-1">
-                        <button class="btn btn-sm btn-outline-danger dislike-btn" data-post-id="${post.id}" data-reaction="DISLIKE">
-                            👎
+                        <button class="btn btn-outline-danger reaction-btn
+                            <#if userReactionMap?? && userReactionMap[post.id?c]?? && userReactionMap[post.id?c] == 'DISLIKE'>btn-danger</#if>"
+                                data-reaction="DISLIKE" data-post-id="${post.id}">
+                            <i class="bi bi-hand-thumbs-down"></i> <span class="dislike-count">${post.dislikes!0}</span>
                         </button>
-                        <span class="dislike-count badge bg-danger text-white">${post.dislikesCount!0}</span>
                     </div>
-
-                    <!-- КНОПКИ РЕД/УДАЛ -->
-                    <#if user?? && (user.id == post.userId || user.role == 'ADMIN' || user.role == 'MODERATOR')>
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal${post.id}">
-                            Удалить
-                        </button>
-
-                        <!-- Modal -->
-                        <div class="modal fade" id="deleteModal${post.id}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-danger text-white">
-                                        <h5 class="modal-title">Удалить пост?</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Это действие <strong>нельзя отменить</strong>.</p>
-                                        <p><strong>Автор:</strong> ${userService.findById(post.userId).login!"[Удалён]"}</p>
-                                        <p><strong>Текст:</strong> ${post.postText?html}</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <form action="${contextPath!''}/post/${post.id}/delete" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-danger">Да, удалить</button>
-                                        </form>
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </#if>
                 </div>
             </div>
         </div>
     </#list>
-</div><#if user??>
-<div class="card mt-5 shadow-sm">
-    <div class="card-header bg-success text-white">
-        <h5 class="mb-0">Написать ответ</h5>
-    </div>
-    <div class="card-body">
-        <form action="${contextPath!''}/post/create" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="topicId" value="${topic.id}">
-
-            <div class="mb-3">
-                <label for="postText" class="form-label">Ваш ответ</label>
-                <textarea name="postText"
-                          id="postText"
-                          class="form-control"
-                          rows="6"
-                          placeholder="Напишите что-нибудь полезное..."
-                          required></textarea>
-                <div class="form-text text-muted mt-1">
-
-
-            <div class="mb-3">
-                <label for="file" class="form-label">Прикрепить файлы</label>
-                <input type="file" name="file" id="file" class="form-control" multiple
-                       accept="image/*,.pdf,.zip,.doc,.docx">
-                <div class="form-text text-muted mt-1">
-                    До 10 МБ каждый. Можно несколько.
-                </div>
-            </div>
-
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-success btn-lg">
-                    Отправить ответ
-                </button>
-            </div>
-        </form>
-    </div>
 </div>
+
+<#if user??>
+    <div class="card mt-5 border-success">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Написать ответ</h5>
+        </div>
+        <div class="card-body">
+            <form action="${contextPath}/post/create" method="post">
+                <input type="hidden" name="topicId" value="${topic.id}">
+                <textarea name="postText" class="form-control" rows="5" placeholder="Напишите что-нибудь полезное..." required></textarea>
+                <div class="text-end mt-3">
+                    <button type="submit" class="btn btn-success btn-lg">Отправить</button>
+                </div>
+            </form>
+        </div>
+    </div>
 <#else>
-    <div class="alert alert-info text-center mt-4">
-        <a href="${contextPath!''}/auth/login" class="alert-link">Войдите</a>, чтобы ответить
+    <div class="alert alert-info text-center mt-5">
+        <a href="${contextPath}/auth/login" class="alert-link">Войдите</a>, чтобы ответить в топике
     </div>
 </#if>
 
+<!-- ВСТРОЕННЫЙ РАБОЧИЙ СКРИПТ — ЛАЙКИ РАБОТАЮТ СРАЗУ -->
 <script>
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('button[data-reaction]');
-        if (!btn) return;
+    const contextPath = document.body.getAttribute("data-context-path") || "";
 
-        const postId = btn.dataset.postId;
-        const reaction = btn.dataset.reaction;
-        const container = btn.closest('.list-group-item');
+    document.querySelectorAll(".reaction-btn").forEach(btn => {
+        btn.addEventListener("click", async function () {
+            const postId = this.dataset.postId;
+            const reaction = this.dataset.reaction;
 
-        fetch('${contextPath!''}/post/' + postId + '/reaction', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'reaction=' + reaction
-        })
-            .then(r => r.json())
-            .then(data => {
-                container.querySelector('.like-count').textContent = data.likes;
-                container.querySelector('.dislike-count').textContent = data.dislikes;
-            })
-            .catch(err => console.error('Ошибка реакции:', err));
+            try {
+                const resp = await fetch(contextPath + "/api/reaction", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `postId=\${postId}&reaction=\${reaction}`
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    document.querySelector(`[data-post-id="\${postId}"][data-reaction="LIKE"] .like-count`).textContent = data.likes;
+                    document.querySelector(`[data-post-id="\${postId}"][data-reaction="DISLIKE"] .dislike-count`).textContent = data.dislikes;
+
+                    // Подсвечиваем текущую реакцию
+                    document.querySelectorAll(`[data-post-id="\${postId}"]`).forEach(b => {
+                        b.classList.remove("btn-success", "btn-danger");
+                    });
+                    if (data.userReaction === "LIKE") {
+                        document.querySelector(`[data-post-id="\${postId}"][data-reaction="LIKE"]`).classList.add("btn-success");
+                    } else if (data.userReaction === "DISLIKE") {
+                        document.querySelector(`[data-post-id="\${postId}"][data-reaction="DISLIKE"]`).classList.add("btn-danger");
+                    }
+                } else {
+                    alert(data.message || "Ошибка");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Не удалось отправить реакцию");
+            }
+        });
     });
 </script>
 

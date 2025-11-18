@@ -18,19 +18,6 @@ public class Post {
     private boolean dislikedByUser = false;
     private int likesCount = 0;
     private int dislikesCount = 0;
-    private List<Attachment> attachmentsList;
-
-    public List<Attachment> getAttachmentsList() {
-        return attachmentsList;
-    }
-
-    public void setAttachmentsList(List<Attachment> attachmentsList) {
-        this.attachmentsList = attachmentsList;
-    }
-
-    public void setAttachment(Attachment attachment) {
-        this.attachmentsList.add(attachment);
-    }
 
     public boolean isDislikedByUser() {
         return dislikedByUser;

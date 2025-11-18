@@ -23,6 +23,16 @@ public class PostRepository {
         }
     }
 
+    public List<Post> getAllPostsByUserId(Long id)  {
+        try (Connection connection = DBConnection.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement("select * from posts where user_id = ?")) {
+            preparedStatement.setLong(1, id);
+            return extractPosts(preparedStatement);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Post getPostById(Long id) throws SQLException {
 
         try (Connection connection = DBConnection.getConnection();
@@ -106,6 +116,24 @@ public class PostRepository {
         }
     }
 
+    public void deleteReactionsFromCategory(Long id) throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM posts WHERE category_id = ?")) {
+            preparedStatement.setLong(1, id);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    public void deleteReactionsFromPost(Long postId) {
+        try (Connection connection = DBConnection.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement("delete from post_reactions where post_id = ? ")) {
+            preparedStatement.setLong(1, postId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private List<Post> extractPosts(PreparedStatement ps) {
         List<Post> posts = new ArrayList<>();
         try (ResultSet rs = ps.executeQuery()) {
@@ -179,6 +207,15 @@ public class PostRepository {
             ps.setLong(2, userId);
             ResultSet rs = ps.executeQuery();
             return rs.next();
+        }
+    }
+
+    public void deleteAttachmentsByTopicId(Long topicId) throws SQLException {
+        String sql = "DELETE FROM attachments WHERE post_id IN (SELECT id FROM posts WHERE topic_id = ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, topicId);
+            stmt.executeUpdate();
         }
     }
 
@@ -271,6 +308,8 @@ public class PostRepository {
         }
     }
 
+
+
     private static Post mapPost(ResultSet rs) throws SQLException {
         Post post = new Post();
         post.setId(rs.getLong("id"));
@@ -290,4 +329,6 @@ public class PostRepository {
         Timestamp timestamp = rs.getTimestamp(column);
         return timestamp != null ? timestamp.toLocalDateTime() : null;
     }
+
+
 }
