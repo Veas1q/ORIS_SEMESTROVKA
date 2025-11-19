@@ -9,16 +9,16 @@ import ru.itis.dis403.semestrovka.models.User;
 
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/topic/create",           // создать топик
-        "/topic/*/edit",           // редактировать
-        "/topic/*/delete",         // удалить
-        "/post/create",            // создать пост
-        "/post/*/edit",            // редактировать пост
-        "/post/*/delete",          // удалить пост
-        "/post/*/like",            // лайк
-        "/post/*/report",          // репорт
-        "/profile/*",              // профиль
-        "/auth/logout"             // выход
+@WebFilter(urlPatterns = {"/topic/create",
+        "/topic/*/edit",
+        "/topic/*/delete",
+        "/post/create",
+        "/post/*/edit",
+        "/post/*/delete",
+        "/post/*/like",
+        "/post/*/report",
+        "/profile/*",
+        "/auth/logout"
 })
 public class AuthFilter implements Filter {
 
@@ -26,7 +26,7 @@ public class AuthFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        HttpServletResponse  response = (HttpServletResponse) servletResponse;
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
 
         HttpSession session = request.getSession(false);
 

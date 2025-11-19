@@ -18,6 +18,24 @@ public class Post {
     private boolean dislikedByUser = false;
     private int likesCount = 0;
     private int dislikesCount = 0;
+    private int likes;
+    private int dislikes;
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
+    public int getDislikes() {
+        return dislikes;
+    }
+
+    public void setDislikes(int dislikes) {
+        this.dislikes = dislikes;
+    }
 
     public boolean isDislikedByUser() {
         return dislikedByUser;

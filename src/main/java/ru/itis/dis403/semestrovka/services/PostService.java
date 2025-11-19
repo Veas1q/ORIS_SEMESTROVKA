@@ -25,7 +25,16 @@ public class PostService {
     }
 
     public List<Post> getPostsByTopicId(Long topicId) throws SQLException {
-        return postRepository.getAllPostFromTopic(topicId);
+        List<Post> posts = postRepository.getAllPostFromTopic(topicId);
+
+        for (Post post : posts) {
+            int likes = postRepository.getReactionCount(post.getId(), "LIKE");
+            int dislikes = postRepository.getReactionCount(post.getId(), "DISLIKE");
+            post.setLikes(likes);
+            post.setDislikes(dislikes);
+        }
+
+        return posts;
     }
 
 
@@ -46,19 +55,11 @@ public class PostService {
         return post;
     }
 
-    public Post updatePost(Long postId, Long currentUserId, String newText) throws SQLException {
-        Post post = postRepository.getPostById(postId);
-        if (post != null) {
-            // Проверяем, что пользователь является автором поста
-            if (!post.getUserId().equals(currentUserId)) {
-                throw new SecurityException("You can only edit your own posts");
-            }
-            post.setPostText(newText);
-
-            postRepository.updatePost(post);
-            return post;
-        }
-        throw new IllegalArgumentException("Post not found");
+    public Post updatePost(Long postId, String newText) throws SQLException {
+        Post post = getPostById(postId);
+        post.setPostText(newText.trim());
+        postRepository.updatePost(post);
+        return post;
     }
 
     public void deleteReactionsFromPost(Long postId) {
@@ -72,12 +73,8 @@ public class PostService {
 
 
     public void deletePost(Long id) throws SQLException {
-        Post post = postRepository.getPostById(id);
-        if (post != null) {
-            postRepository.deletePost(id);
-        } else {
-            throw new IllegalArgumentException("Post not found");
-        }
+        Post post = getPostById(id);
+        postRepository.deletePost(id);
     }
 
     public void toggleReaction(Long postId, Long userId, String reactionType) throws SQLException {
@@ -102,5 +99,6 @@ public class PostService {
             postRepository.deleteReactionsByPostId(post.getId());
         }
     }
+
 
 }

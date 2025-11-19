@@ -5,7 +5,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ru.itis.dis403.semestrovka.models.Post;
-import ru.itis.dis403.semestrovka.models.User;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -19,15 +18,15 @@ public class PostServlet extends BaseServlet {
         postService.setServletContext(getServletContext());
     }
 
+
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
 
-        // === РЕДАКТИРОВАНИЕ ПОСТА: показ формы ===
+        // РЕДАКТИРОВАНИЕ ПОСТА — форма
         if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
             Long postId = Long.parseLong(pathInfo.split("/")[1]);
-            Long userId = (Long) req.getSession().getAttribute("userId");
-            String role = (String) req.getSession().getAttribute("userRole");
 
             try {
                 Post post = postService.getPostById(postId);
@@ -36,23 +35,22 @@ public class PostServlet extends BaseServlet {
                     return;
                 }
 
-                boolean canEdit = userId != null &&
-                        (post.getUserId().equals(userId) || "ADMIN".equals(role) || "MODERATOR".equals(role));
-
-                if (!canEdit) {
+                if (!hasEditRights(req, post.getUserId())) {
                     resp.sendError(403, "Доступ запрещён");
                     return;
                 }
 
                 req.setAttribute("post", post);
-                req.getRequestDispatcher("/WEB-INF/views/edit-post.ftlh").forward(req, resp);
+                req.setAttribute("topicId", post.getTopicId());
+                req.getRequestDispatcher("/edit-post.ftlh").forward(req, resp);
 
             } catch (SQLException e) {
                 throw new ServletException("Ошибка загрузки поста", e);
             }
-        } else {
-            resp.sendError(404);
+            return;
         }
+
+        resp.sendError(404);
     }
 
     @Override
@@ -60,7 +58,6 @@ public class PostServlet extends BaseServlet {
         String pathInfo = req.getPathInfo();
 
         try {
-            // === СОЗДАНИЕ ПОСТА (ТОЛЬКО ТЕКСТ) ===
             if ("/create".equals(pathInfo)) {
                 Long userId = (Long) req.getSession().getAttribute("userId");
                 if (userId == null) {
@@ -70,15 +67,12 @@ public class PostServlet extends BaseServlet {
 
                 String postText = req.getParameter("postText");
                 String topicIdStr = req.getParameter("topicId");
-
-                if (postText == null || postText.trim().isEmpty() ||
-                        topicIdStr == null || topicIdStr.trim().isEmpty()) {
-                    resp.sendError(400, "Текст поста и ID топика обязательны");
+                if (postText == null || postText.trim().isEmpty() || topicIdStr == null || topicIdStr.trim().isEmpty()) {
+                    resp.sendError(400, "Заполните все поля");
                     return;
                 }
 
                 Long topicId = Long.parseLong(topicIdStr);
-
                 Post post = new Post();
                 post.setPostText(postText.trim());
                 post.setUserId(userId);
@@ -89,81 +83,80 @@ public class PostServlet extends BaseServlet {
                 return;
             }
 
-            // === УДАЛЕНИЕ ПОСТА ===
+            // УДАЛЕНИЕ ПОСТА
             if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
                 Long postId = Long.parseLong(pathInfo.split("/")[1]);
-                Long userId = (Long) req.getSession().getAttribute("userId");
-                String role = userService.findById(userId).getRole();
-
-                if (userId == null) {
-                    resp.sendError(401);
-                    return;
-                }
-
                 Post post = postService.getPostById(postId);
                 if (post == null) {
                     resp.sendError(404);
                     return;
                 }
 
-                boolean canDelete = post.getUserId().equals(userId) ||
-                        "ADMIN".equals(role) || "MODERATOR".equals(role);
-
-                if (!canDelete) {
-                    resp.sendError(403);
+                if (!hasDeleteRights(req, post.getUserId())) {
+                    resp.sendError(403, "Доступ запрещён");
                     return;
                 }
+
                 postService.deleteReactionsFromPost(postId);
                 postService.deletePost(postId);
                 resp.sendRedirect(req.getContextPath() + "/topic/" + post.getTopicId());
                 return;
             }
 
-            // === РЕДАКТИРОВАНИЕ ПОСТА ===
             if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
                 Long postId = Long.parseLong(pathInfo.split("/")[1]);
-                String newText = req.getParameter("postText");
-                Long userId = (Long) req.getSession().getAttribute("userId");
+                Post post = postService.getPostById(postId);
+                if (post == null) {
+                    resp.sendError(404);
+                    return;
+                }
 
+                if (!hasEditRights(req, post.getUserId())) {
+                    resp.sendError(403, "Доступ запрещён");
+                    return;
+                }
+
+                String newText = req.getParameter("postText");
                 if (newText == null || newText.trim().isEmpty()) {
                     resp.sendError(400, "Текст не может быть пустым");
                     return;
                 }
 
-                postService.updatePost(postId, userId, newText.trim());
-
-                Post post = postService.getPostById(postId);
+                postService.updatePost(postId, newText.trim());
                 resp.sendRedirect(req.getContextPath() + "/topic/" + post.getTopicId());
                 return;
             }
 
-            // === ЛАЙКИ / ДИЗЛАЙКИ ===
+            // ЛАЙКИ / ДИЗЛАЙКИ — С КРАСИВЫМ СООБЩЕНИЕМ
             if (pathInfo != null && pathInfo.matches("/\\d+/reaction")) {
                 Long postId = Long.parseLong(pathInfo.split("/")[1]);
                 String reaction = req.getParameter("reaction");
 
-                User user = (User) req.getSession().getAttribute("user");
-                if (user == null) {
-                    resp.setStatus(401);
-                    resp.getWriter().write("{\"error\": \"Не авторизован\"}");
+                Long userId = (Long) req.getSession().getAttribute("userId");
+                if (userId == null) {
+                    resp.setContentType("application/json");
+                    resp.setCharacterEncoding("UTF-8");
+                    resp.getWriter().write("{\"success\":false,\"message\":\"Войдите, чтобы поставить реакцию\"}");
                     return;
                 }
 
                 if (!"LIKE".equals(reaction) && !"DISLIKE".equals(reaction)) {
-                    resp.sendError(400);
+                    resp.setContentType("application/json");
+                    resp.getWriter().write("{\"success\":false,\"message\":\"Неверная реакция\"}");
                     return;
                 }
 
-                postService.toggleReaction(postId, user.getId(), reaction);
+                postService.toggleReaction(postId, userId, reaction);
 
                 int likes = postService.getReactionCount(postId, "LIKE");
                 int dislikes = postService.getReactionCount(postId, "DISLIKE");
 
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");
-                String json = """
-                        {"likes":%d,"dislikes":%d,"userReaction":"%s"}
-                        """.formatted(likes, dislikes, reaction);
+                String json = String.format(
+                        "{\"success\":true,\"likes\":%d,\"dislikes\":%d,\"userReaction\":\"%s\"}",
+                        likes, dislikes, reaction != null ? reaction : ""
+                );
                 resp.getWriter().write(json);
                 return;
             }
@@ -173,7 +166,23 @@ public class PostServlet extends BaseServlet {
         } catch (SQLException e) {
             throw new ServletException("Ошибка базы данных", e);
         } catch (NumberFormatException e) {
-            resp.sendError(400, "Неверный формат ID");
+            resp.sendError(400, "Неверный ID");
         }
+    }
+
+    private boolean hasEditRights(HttpServletRequest req, Long postOwnerId) {
+        Long userId = (Long) req.getSession().getAttribute("userId");
+
+        if (userId == null) return false;
+        if (userId.equals(postOwnerId)) return true;
+        return false;
+    }
+    private boolean hasDeleteRights(HttpServletRequest req, Long postOwnerId) {
+        Long userId = (Long) req.getSession().getAttribute("userId");
+        String role = userService.findById(postOwnerId).getRole();
+
+        if (userId == null) return false;
+        if (userId.equals(postOwnerId)) return true;
+        return "ADMIN".equals(role) || "MODERATOR".equals(role);
     }
 }

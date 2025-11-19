@@ -17,7 +17,6 @@
                     <p class="text-danger"><strong>Бессрочно</strong></p>
                 </#if>
 
-                <p class="text-muted">Обратитесь к администратору, если это ошибка.</p>
                 <a href="${contextPath!''}/auth/logout" class="btn btn-outline-danger">Выйти</a>
             </div>
         </div>

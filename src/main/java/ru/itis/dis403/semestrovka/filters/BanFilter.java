@@ -25,7 +25,7 @@ public class BanFilter implements Filter {
                 .getAttribute("userService");
 
         Long userId = (Long) request.getSession().getAttribute("userId");
-        if (userId != null && userService != null) {
+        if (userId != null ) {
             try {
                 User user = userService.findById(userId);
                 if (user != null && user.getIsBanned()) {

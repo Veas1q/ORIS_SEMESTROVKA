@@ -28,16 +28,16 @@ public class UserService {
 
     public User registration(UserRegistrationDTO userRegistrationDTO) throws Exception {
         if (!isEmailAvailable(userRegistrationDTO.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException("почта уже занята");
         }
         if (!isLoginAvailable(userRegistrationDTO.getLogin())) {
-                throw new IllegalArgumentException("Login already exists");
+                throw new IllegalArgumentException("логин занят");
         }
         if (userRegistrationDTO.getPassword().length() < 6) {
-            throw new Exception("The password is too short");
+            throw new Exception("Пароль слишком короткий");
         }
         if (!userRegistrationDTO.getPassword().equals(userRegistrationDTO.getPassword2())) {
-            throw new Exception("Passwords don't match");
+            throw new Exception("Пароли не совпадают");
         }
         if (!userRegistrationDTO.getPassword().matches("^[a-zA-Z0-9!@#$%^&*()_+=-]+$")) {
             throw new Exception("Пароль может содержать только латинские буквы, цифры и символы");
@@ -58,7 +58,7 @@ public class UserService {
         if (user != null && checkPassword(userLoginDTO.getPassword(), user.getPasswordHash())) {
             return user;
         }
-        throw new IllegalArgumentException("Invalid login or password");
+        throw new IllegalArgumentException("Неверный логин или пароль");
     }
 
     public User findById(Long id)  {
@@ -66,7 +66,7 @@ public class UserService {
         if (user != null) {
             return user;
         }
-        throw new IllegalArgumentException("User not found");
+        throw new IllegalArgumentException("Пользователь не найден");
     }
 
     public List<User> getAllUsers() {
@@ -78,7 +78,7 @@ public class UserService {
         if (user != null) {
             return user;
         }
-        throw new IllegalArgumentException("User not found");
+        throw new IllegalArgumentException("Пользователь не найден");
     }
 
     public User findByEmail(String email) throws SQLException {
@@ -86,7 +86,7 @@ public class UserService {
         if (user != null) {
             return user;
         }
-        throw new IllegalArgumentException("User not found");
+        throw new IllegalArgumentException("Пользователь не найден");
     }
 
     public void banUser(Long id, String reason, LocalDateTime until) throws SQLException {
@@ -125,7 +125,7 @@ public class UserService {
             userRepository.adminUpdate(userUpdate);
             return userUpdate;
         }
-        throw new IllegalArgumentException("User not found");
+        throw new IllegalArgumentException("Пользователь не найден");
     }
 
     public void changePassword(PasswordChangeDTO dto) throws SQLException {

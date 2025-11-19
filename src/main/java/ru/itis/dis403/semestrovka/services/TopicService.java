@@ -26,7 +26,7 @@ public class TopicService {
         if (topic != null) {
             return topic;
         }
-        throw new IllegalArgumentException("Topic not found");
+        throw new IllegalArgumentException("Топик не найден");
     }
 
     public List<Topic> getRecentTopics(int limit) throws SQLException {
@@ -60,7 +60,7 @@ public class TopicService {
             topicRepository.updateTopic(topic);
             return topic;
         }
-        throw new IllegalArgumentException("Topic not found");
+        throw new IllegalArgumentException("Топик не найден");
     }
 
     public void deleteTopic(Long id) throws SQLException {
@@ -68,7 +68,7 @@ public class TopicService {
         if (topic != null) {
             topicRepository.deleteTopic(id);
         } else {
-            throw new IllegalArgumentException("Topic not found");
+            throw new IllegalArgumentException("Топик не найден");
         }
     }
 
@@ -77,7 +77,7 @@ public class TopicService {
         if (topic != null) {
             topicRepository.updateViewCount(topicId);
         } else {
-            throw new IllegalArgumentException("Topic not found");
+            throw new IllegalArgumentException("Топик не найден");
         }
     }
 
@@ -88,7 +88,7 @@ public class TopicService {
         if (topic != null) {
             topicRepository.togglePinned(topicId, pinned, pinnedByUserId);
         } else {
-            throw new IllegalArgumentException("Topic not found");
+            throw new IllegalArgumentException("Топик не найден");
         }
     }
 
@@ -97,7 +97,7 @@ public class TopicService {
         if (topic != null) {
             topicRepository.toggleClosed(topicId, closed, closedByUserId);
         } else {
-            throw new IllegalArgumentException("Topic not found");
+            throw new IllegalArgumentException("Топик не найден");
         }
     }
 }

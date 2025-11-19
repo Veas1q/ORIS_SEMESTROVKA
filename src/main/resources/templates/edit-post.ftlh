@@ -12,8 +12,10 @@
             </div>
         </form>
         <div class="text-muted small mt-3">
-            Создан: ${post.createdAt!"—"}
-            <#if post.updatedAt??> • Изменён: ${post.updatedAt!"—"}</#if>
+            Создан: ${post.createdAt?replace("T", " ")?substring(0, 16)}
+            <#if post.createdAt??>
+                • ${post.createdAt?replace("T", " ")?substring(0, 16)}
+            </#if>
         </div>
     </div>
 </div>

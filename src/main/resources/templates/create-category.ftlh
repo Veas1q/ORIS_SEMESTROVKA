@@ -7,7 +7,6 @@
 
             <h1 class="mb-4">Создать новую категорию</h1>
 
-            <!-- ОШИБКА -->
             <#if error??>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <strong>Ошибка:</strong> ${error}
@@ -76,9 +75,7 @@
     </div>
 </div>
 
-<!-- ВАЛИДАЦИЯ ФОРМЫ НА СТОРОНЕ КЛИЕНТА -->
 <script>
-    // Bootstrap 5 валидация
     (function () {
         'use strict';
         const forms = document.querySelectorAll('.needs-validation');
