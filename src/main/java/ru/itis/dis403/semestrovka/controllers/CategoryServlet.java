@@ -49,7 +49,6 @@ public class CategoryServlet extends BaseServlet {
                     return;
                 }
 
-                // 18+ проверка
                 Integer ageRestriction = category.getAgeRestriction();
                 Long userId = (Long) req.getSession().getAttribute("userId");
                 if (ageRestriction != null && ageRestriction >= 18) {
@@ -86,7 +85,6 @@ public class CategoryServlet extends BaseServlet {
         User currentUser = (User) req.getSession().getAttribute("user");
         Long userId = (Long) req.getSession().getAttribute("userId");
 
-        // === СОЗДАНИЕ КАТЕГОРИИ ===
         if ("/create".equals(pathInfo)) {
             if (userId == null || currentUser == null ||
                     !("ADMIN".equals(currentUser.getRole()) || "MODERATOR".equals(currentUser.getRole()))) {
@@ -129,7 +127,6 @@ public class CategoryServlet extends BaseServlet {
             return;
         }
 
-        // === УДАЛЕНИЕ КАТЕГОРИИ (ТОЛЬКО АДМИН) ===
         if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
             if (currentUser == null || !"ADMIN".equals(currentUser.getRole())) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Только администратор может удалять категории");

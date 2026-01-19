@@ -19,14 +19,12 @@ public class TopicServlet extends BaseServlet {
             String pathInfo = req.getPathInfo();
             req.setAttribute("contextPath", req.getContextPath());
 
-            // === СОЗДАНИЕ ТОПИКА ===
             if ("/create".equals(pathInfo)) {
                 req.setAttribute("categories", categoryService.getAllCategories());
                 req.getRequestDispatcher("/create-topic.ftlh").forward(req, resp);
                 return;
             }
 
-            // === РЕДАКТИРОВАНИЕ ===
             if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
                 Long topicId = Long.parseLong(pathInfo.substring(1, pathInfo.indexOf("/edit")));
                 Topic topic = topicService.getTopicById(topicId);
@@ -57,7 +55,6 @@ public class TopicServlet extends BaseServlet {
                 return;
             }
 
-            // === УДАЛЕНИЕ (подтверждение) ===
             if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
                 Long topicId = Long.parseLong(pathInfo.split("/")[1]);
                 Topic topic = topicService.getTopicById(topicId);
@@ -87,7 +84,6 @@ public class TopicServlet extends BaseServlet {
                 return;
             }
 
-            // === ПРОСМОТР ТОПИКА ===
             Long topicId = Long.parseLong(pathInfo.substring(1));
             Topic topic = topicService.getTopicById(topicId);
             if (topic == null) {
@@ -95,7 +91,6 @@ public class TopicServlet extends BaseServlet {
                 return;
             }
 
-            // Проверка возрастного ограничения
             if (topic.getAgeRestriction() != null && topic.getAgeRestriction() > 0) {
                 Long userId = (Long) req.getSession().getAttribute("userId");
                 if (userId == null) {
@@ -146,7 +141,6 @@ public class TopicServlet extends BaseServlet {
         }
 
         try {
-            // === СОЗДАНИЕ ТОПИКА ===
             if ("/create".equals(pathInfo)) {
                 Long userId = (Long) req.getSession().getAttribute("userId");
                 if (userId == null) {
@@ -177,7 +171,6 @@ public class TopicServlet extends BaseServlet {
                 return;
             }
 
-            // === РЕДАКТИРОВАНИЕ / УДАЛЕНИЕ ===
             String[] parts = pathInfo.substring(1).split("/");
             Long topicId = Long.parseLong(parts[0]);
             Topic topic = topicService.getTopicById(topicId);

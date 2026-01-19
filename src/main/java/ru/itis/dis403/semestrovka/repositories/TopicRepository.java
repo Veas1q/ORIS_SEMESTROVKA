@@ -67,7 +67,6 @@ public class TopicRepository {
         }
     }
 
-    // TopicRepository.java
     public Topic addTopic(Topic topic) throws SQLException {
         String sql = """
         INSERT INTO topics (title, category_id, user_id, age_restriction)

@@ -13,18 +13,9 @@ import java.sql.SQLException;
 public class PostServlet extends BaseServlet {
 
     @Override
-    public void init() {
-        super.init();
-        postService.setServletContext(getServletContext());
-    }
-
-
-
-    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
 
-        // РЕДАКТИРОВАНИЕ ПОСТА — форма
         if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
             Long postId = Long.parseLong(pathInfo.split("/")[1]);
 
@@ -83,7 +74,6 @@ public class PostServlet extends BaseServlet {
                 return;
             }
 
-            // УДАЛЕНИЕ ПОСТА
             if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
                 Long postId = Long.parseLong(pathInfo.split("/")[1]);
                 Post post = postService.getPostById(postId);
@@ -127,7 +117,6 @@ public class PostServlet extends BaseServlet {
                 return;
             }
 
-            // ЛАЙКИ / ДИЗЛАЙКИ — С КРАСИВЫМ СООБЩЕНИЕМ
             if (pathInfo != null && pathInfo.matches("/\\d+/reaction")) {
                 Long postId = Long.parseLong(pathInfo.split("/")[1]);
                 String reaction = req.getParameter("reaction");

@@ -13,16 +13,11 @@ import java.util.List;
 
 public class PostService {
     private final PostRepository postRepository;
-    private ServletContext servletContext;
 
     public PostService(PostRepository postRepo) {
         this.postRepository = postRepo;
     }
 
-    // Сеттер
-    public void setServletContext(ServletContext servletContext) {
-        this.servletContext = servletContext;
-    }
 
     public List<Post> getPostsByTopicId(Long topicId) throws SQLException {
         List<Post> posts = postRepository.getAllPostFromTopic(topicId);

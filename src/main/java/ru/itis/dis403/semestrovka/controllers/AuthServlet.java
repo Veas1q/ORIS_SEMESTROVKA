@@ -82,14 +82,11 @@ public class AuthServlet extends BaseServlet {
         try {
             User user = userService.login(dto);
 
-            // ПРОВЕРКА БАНА
             if (user.getIsBanned()) {
-                // Авто-разбан, если срок истёк
                 if (user.getBannedUntil() != null && user.getBannedUntil().isBefore(LocalDateTime.now())) {
                     userService.unbanUser(user.getId());
-                    user = userService.findById(user.getId()); // Обновляем объект
+                    user = userService.findById(user.getId());
                 } else {
-                    // БАН АКТИВЕН → ПЕРЕНАПРАВЛЯЕМ НА СТРАНИЦУ БЛОКИРОВКИ
                     request.setAttribute("banReason", user.getBanReason());
                     request.setAttribute("bannedUntil", user.getBannedUntil());
                     request.getRequestDispatcher("/banned.ftlh").forward(request, response);
@@ -97,7 +94,6 @@ public class AuthServlet extends BaseServlet {
                 }
             }
 
-            // Если не забанен — логиним
             HttpSession session = request.getSession();
             session.setAttribute("userId", user.getId());
             session.setAttribute("user", user);

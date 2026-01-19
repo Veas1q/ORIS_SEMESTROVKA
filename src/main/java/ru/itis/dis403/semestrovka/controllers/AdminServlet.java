@@ -63,7 +63,6 @@ public class AdminServlet extends BaseServlet {
             return;
         }
 
-        // ЗАЩИТА: никто не может трогать админа
         if ("ADMIN".equals(targetUser.getRole())) {
             resp.sendError(403, "Нельзя изменять администратора");
             return;

@@ -162,14 +162,12 @@ public class PostRepository {
             if (rs.next()) {
                 String current = rs.getString("reaction_type");
                 if ("LIKE".equals(current)) {
-                    // Уже лайкнул — убираем
                     try (PreparedStatement delete = conn.prepareStatement(sqlDelete)) {
                         delete.setLong(1, postId);
                         delete.setLong(2, userId);
                         delete.executeUpdate();
                     }
                 } else {
-                    // Был дизлайк — меняем на лайк
                     try (PreparedStatement update = conn.prepareStatement(sqlUpdate)) {
                         update.setLong(1, postId);
                         update.setLong(2, userId);
@@ -177,7 +175,6 @@ public class PostRepository {
                     }
                 }
             } else {
-                // Ничего не было — ставим лайк
                 try (PreparedStatement insert = conn.prepareStatement(sqlInsert)) {
                     insert.setLong(1, postId);
                     insert.setLong(2, userId);
@@ -234,14 +231,12 @@ public class PostRepository {
             if (rs.next()) {
                 String current = rs.getString(1);
                 if (current.equals(reactionType)) {
-                    // Уже стоит — убираем
                     try (PreparedStatement delete = conn.prepareStatement(deleteSql)) {
                         delete.setLong(1, postId);
                         delete.setLong(2, userId);
                         delete.executeUpdate();
                     }
                 } else {
-                    // Меняем на другой
                     try (PreparedStatement update = conn.prepareStatement(updateSql)) {
                         update.setString(1, reactionType);
                         update.setLong(2, postId);
@@ -250,7 +245,6 @@ public class PostRepository {
                     }
                 }
             } else {
-                // Ничего нет — ставим
                 try (PreparedStatement insert = conn.prepareStatement(insertSql)) {
                     insert.setLong(1, postId);
                     insert.setLong(2, userId);

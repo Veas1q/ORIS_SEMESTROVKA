@@ -12,7 +12,6 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        // Инициализируем пул соединений HikariC
         DBConnection.init();
 
         UserRepository userRepo = new UserRepository();
@@ -25,7 +24,6 @@ public class AppContextListener implements ServletContextListener {
         TopicService topicService = new TopicService(topicRepo);
         PostService postService = new PostService(postRepo);
 
-        // Получаем сервлет контекст, который живёт всё время работы приложения и кладем в него сервисы
         ServletContext servletContext = event.getServletContext();
         servletContext.setAttribute("userService", userService);
         servletContext.setAttribute("categoryService", categoryService);
