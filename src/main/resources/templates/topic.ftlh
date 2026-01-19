@@ -2,32 +2,53 @@
 <#assign pageTitle = topic.title />
 
 <style>
+    /* ============================================= */
+    /* ОБЩИЕ СТИЛИ СТРАНИЦЫ                          */
+    /* ============================================= */
     body {
         min-height: 100vh;
+        /* Страница всегда занимает всю высоту экрана — футер будет внизу даже при мало контента */
         background: #f8f9fa;
+        /* Приятный светло-серый фон (как у Bootstrap) вместо чисто белого */
     }
+
     .reaction-container button {
         min-width: 80px;
+        /* Чтобы кнопки не становились слишком узкими и цифры помещались */
     }
+
     .reaction-btn {
         transition: all 0.2s;
+        /* Плавная анимация при наведении и клике */
     }
+
     .reaction-btn:hover {
         transform: scale(1.1);
+        /* При наведении кнопка увеличивается на 10% — крутой эффект "подпрыгивания" */
     }
+
     .card {
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* Мягкая тень — карточки выглядят объёмно и современно */
     }
+
     .list-group-item {
         border-left: 4px solid transparent;
+        /* Слева невидимая полоска (по умолчанию) */
         transition: all 0.2s;
+        /* Плавное изменение при наведении */
     }
+
     .list-group-item:hover {
         border-left-color: #0d6efd;
+        /* При наведении появляется синяя полоска слева (цвет primary Bootstrap) */
         background-color: #f8f9fa;
+        /* Лёгкое подсвечивание фона — сразу видно, на каком посте курсор */
     }
+
     .btn-success, .btn-danger {
         font-weight: bold;
+        /* "Отправить", "Удалить" и другие важные кнопки — жирным шрифтом, чтобы выделялись */
     }
 </style>
 
@@ -134,60 +155,45 @@
         </div>
     </#if>
     <script>
-        // 1. Получаем базовый путь приложения из атрибута data-context-path тела документа
-        // Если атрибут не найден, используем пустую строку
         const contextPath = document.body.getAttribute("data-context-path") || "";
 
-        // 2. Ждем полной загрузки DOM перед выполнением скрипта
         document.addEventListener("DOMContentLoaded", function () {
 
-            // 3. Находим ВСЕ кнопки с классом "reaction-btn" на странице
             document.querySelectorAll(".reaction-btn").forEach(function (btn) {
 
-                // 4. Добавляем обработчик клика на каждую кнопку
                 btn.addEventListener("click", async function () {
 
-                    // 5. Получаем ID поста из data-атрибута кнопки
                     const postId = this.dataset.postId;
-                    // 6. Получаем тип реакции (LIKE/DISLIKE) из data-атрибута
                     const reaction = this.dataset.reaction;
 
                     try {
-                        // 7. Отправляем AJAX-запрос на сервер
                         const response = await fetch(contextPath + "/post/" + postId + "/reaction", {
-                            method: "POST", // Метод запроса - отправка данных
+                            method: "POST",
                             headers: {
-                                "Content-Type": "application/x-www-form-urlencoded", // Тип передаваемых данных
-                                "X-Requested-With": "XMLHttpRequest" // Помечаем как AJAX-запрос
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                "X-Requested-With": "XMLHttpRequest"
                             },
-                            body: "reaction=" + reaction // Передаем тип реакции в теле запроса
+                            body: "reaction=" + reaction
                         });
 
-                        // 8. Проверяем успешность HTTP-ответа (статус 200-299)
                         if (!response.ok) {
                             alert("Ошибка сервера: " + response.status);
-                            return; // Прерываем выполнение при ошибке
+                            return;
                         }
 
-                        // 9. Парсим JSON-ответ от сервера
                         const data = await response.json();
 
-                        // 10. Проверяем флаг успеха в ответе сервера
                         if (data.success) {
-                            // 11. Обновляем счетчики лайков на странице
                             document.querySelector('[data-post-id="' + postId + '"][data-reaction="LIKE"] .like-count').textContent = data.likes;
                             document.querySelector('[data-post-id="' + postId + '"][data-reaction="DISLIKE"] .dislike-count').textContent = data.dislikes;
                         } else {
-                            // 12. Показываем сообщение об ошибке от сервера
                             alert(data.message || "Не удалось поставить реакцию");
                         }
                     } catch (err) {
-                        // 13. Обрабатываем ошибки сети или выполнения
                         console.error(err);
                         alert("Нет соединения с сервером");
                     }
                 });
-            });
             });
         });
     </script>

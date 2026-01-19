@@ -1,5 +1,6 @@
 package ru.itis.dis403.semestrovka.controllers;
 
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServlet;
 import ru.itis.dis403.semestrovka.services.*;
 
@@ -11,7 +12,7 @@ public abstract class BaseServlet extends HttpServlet {
     protected PostService postService;
 
     public void init() {
-        var servletContext = getServletContext();
+        ServletContext servletContext = getServletContext();
         categoryService = (CategoryService) servletContext.getAttribute("categoryService");
         postService = (PostService) servletContext.getAttribute("postService");
         topicService = (TopicService) servletContext.getAttribute("topicService");
